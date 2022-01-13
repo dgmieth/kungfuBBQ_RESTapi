@@ -25,16 +25,16 @@ exports.chargeCreditCard = (dataObject, callback) => {
     billTo.setEmail(dataObject.email)
 
     var order = new ApiContracts.OrderType()
-    order.setInvoiceNumber(dataObject.orderId)
-    order.setDescription("Purchase of meals")
+    order.setInvoiceNumber(`Order_${dataObject.orderId}`)
+    order.setDescription("FoodTruck order")
 
     var itemsList = []
     var counter = 0
     dataObject.dish.forEach(dish => {
-        console.log(dish)
+        // console.log(dish)
         var lineItem = new ApiContracts.LineItemType()
-        lineItem.setItemId(dish.dishId)
-        lineItem.setName(dish.dishName)
+        lineItem.setItemId(`dishID_${dish.dishId}`)
+        lineItem.setName(dish.dishName.substring(0,28))
         lineItem.setUnitPrice(parseFloat(dish.dishPrice).toFixed(2))
         lineItem.setQuantity(parseFloat(dish.dishQtty).toFixed(2))
         itemsList.push(lineItem)
