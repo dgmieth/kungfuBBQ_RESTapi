@@ -1,0 +1,4 @@
+.env
+dockerfile
+traefic.yml
+node_modules/

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kungfu BBQ Reset Password</title>
+</head>
+<body>
+    <style>
+        html,body{
+            padding:0;
+            margin: 0;
+            height: 100%;
+            background-color: rgb(230, 230, 230);;
+        }
+        .center{
+            text-align: center;
+        }
+        img{
+            margin-top: 5px; 
+        }
+        p,label{
+            font-size: 1.5rem;
+        }
+        input{
+            line-height: 1.5rem;
+            width: 200px;
+        }
+        h1,h2,h6{
+            margin: 0;
+        }
+    </style>
+    <div style="margin: 0;padding: 0;background-color: rgb(114, 114, 114);">
+        <div class="center" style="margin-left:auto;margin-right:auto;">
+            <img src="/views/public/img/kkfBBQ_icon.png" alt="Kungfu BBQ logo" height="20%" width="20%">
+            <h1>Password recovery</h1>
+            <h6>____________________________________</h2>
+        </div>
+        <div style="margin-left:10%;margin-right:10%;">
+            <form>
+                <input name="email" value="<%= email %>" disabled hidden>
+                <input name="text" value="<%= token %>" disabled hidden>
+                <p>Hi,<strong><%= name %</strong>!</p>
+                <label for="password">Please inform a new password: </label>
+                <input type="password" placeholder="8 alphanumerical digits" name="password">
+                <br>
+                <label for="passwordConfirmation">Please confirm your new password: </label>
+                <input type="password" placeholder="8 alphanumerical digits">
+            </form>
+        </div>
+    </div>
+
+    <h1><%= name %></h1>
+    <h1><%= email %></h1>
+    <h1><%= token %></h1>
+</body>
+</html>
