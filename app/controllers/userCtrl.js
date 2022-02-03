@@ -40,7 +40,7 @@ exports.forgotPassword = (req,res,next) => {
             user.savePasswordRecoveryToken()
             .then(([data2,meta2])=>{
                 if(data2.affectedRows>0){
-                    sendEmail(user.email,'Password Recovery',{name: user.name, link: `https://dgmieth.live/api/User/resetPassword?token=${user.passwordRecoveryToken}`})
+                    sendEmail(user.email,'Password Recovery',{name: user.name, link: `${process.env.KUNGFU_BBQ_API_DNS}/api/User/resetPassword?token=${user.passwordRecoveryToken}`})
                     return res.json(returnResJsonObj.resJsonOjbect(false,`Passowrd recovery e-mail sent to ${user.email}`,noError))            
                 }else{
                     return res.json(returnResJsonObj.resJsonOjbect(true,'Server error. Could not generate password recovery token.',userError))}})

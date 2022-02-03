@@ -42,24 +42,8 @@ document.getElementById('submitBtn').addEventListener('click',(e)=>{
         if(!response.hasErrors){
             document.getElementById(`mainForm`).style.display = `none`
             document.getElementById(`successPage`).style.display = `block`
-        }else if(response.hasErrors){
-            var text = ``
-            if(response.passwordsNoMatch){
-                text = `${text} <p>Password and password confirmation <strong>must be equal</strong><p>`
-            }
-            if(response.passwordValidation){
-                text = `${text} <p>Your password and confirmation password <strong>must contain</strong> numbers, letters and <strong>at least one</strong> CAPITAL letter. <p>`
-            }
-            if(response.couldNotValidateUser){
-                text = ` <p>The system could not validate the User token. Please, try again later. <p>`
-            }
-            if(response.couldNotEncryptPassword){
-                text = ` <p>The system could not encrypt the new password. Please, try again later. <p>`
-            }
-            if(response.noUserFound){
-                text = ` <p>No User was found for the credentials in this token. Please contact KungfuBBQ. <p>`
-            }
-            document.getElementById(`errors`).innerHTML = text
+        }else {
+            document.getElementById(`errors`).innerHTML = response.msg
             document.getElementById(`alert`).style.display = `block`
         }
     })

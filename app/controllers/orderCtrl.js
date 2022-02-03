@@ -47,6 +47,7 @@ exports.newOrder = (req,res,next) => {
 // -----------------------------------------------------------------------------
 exports.deleteOrder = (req,res,next) => {
     console.log('/api/order/deleteOrder -> ')
+    console.log(req.body)
     var validationObject = {}
     if(!req.body.order_id||!req.body.id||!req.body.email){
         return res.json(returnResJsonObj.resJsonOjbect(true,`{invalidFormat: true,neededFields: {order_id: 'integer',id: 'integer', email: 'string'}}`,orderError))
@@ -63,6 +64,9 @@ exports.deleteOrder = (req,res,next) => {
         }
         if(validate===-3){
             return res.json(returnResJsonObj.resJsonOjbect(true,`This order cannot be deleted because it has already being paid`, validate))
+        }
+        if(validate===-4){
+            return res.json(returnResJsonObj.resJsonOjbect(true,`This order cannot be updated on this screen anymore. You'll be redirected to the calendar`, validate))
         }
         var data = orderData[0]
         console.log('data is ->',data)
@@ -96,10 +100,10 @@ exports.updateOrder = (req,res,next) => {
             return res.json(returnResJsonObj.resJsonOjbect(true,`The attempt to update order failed, because this order has been previously deleted`, validate))
         }
         if(validate===-4){
-            return res.json(returnResJsonObj.resJsonOjbect(true,`This cooking date is not in a state that accepts updates to its orders.`, validate))
+            return res.json(returnResJsonObj.resJsonOjbect(true,`This cooking date is not in a state that accepts order updates.`, validate))
         }
-        if(validate===-4){
-            return res.json(returnResJsonObj.resJsonOjbect(true,`This order is in a state that does not accept updates anyloger.`, validate))
+        if(validate===-5){
+            return res.json(returnResJsonObj.resJsonOjbect(true,`This order cannot be updated because it has already been paid.`, validate))
         }
         var data = orderData[0]
         if(data){
@@ -126,6 +130,12 @@ exports.cancelMadeToListOrder = (req,res,next) => {
         var validate = parseInt(orderData[1][0]['returnCode'])
         if(validate===-2){
             return res.json(returnResJsonObj.resJsonOjbect(true,`The attempt to delete order failed because it has been previously deleted.`, validate))
+        }
+        if(validate===-3){
+            return res.json(returnResJsonObj.resJsonOjbect(true,`The attempt to delete order failed because it has been paid already.`, validate))
+        }
+        if(validate===-4){
+            return res.json(returnResJsonObj.resJsonOjbect(true,`This cooking date does not accept order updates anymore.`, validate))
         }
         var data = orderData[0]
         if(data){
@@ -182,6 +192,9 @@ exports.payOrder = (req,res,next) => {
                         if(validate===-6){
                             return res.json(returnResJsonObj.resJsonOjbect(true,`The attempt to pay order failed because this order is still wainting for dropped out orders.`, validate))
                         }
+                        if(validate===-7){
+                            return res.json(returnResJsonObj.resJsonOjbect(true,`This cooking date isn't accepting payment yet.`, validate))
+                        }
                         payment.chargeCreditCard(dataObject,(cb)=> {        
                             console.log(cb)
                             cb.user_id = user[0].id
@@ -192,7 +205,7 @@ exports.payOrder = (req,res,next) => {
                             .then(([payment,paymentM])=>{
                                 console.log(payment)
                                 if(cb.error === 1){
-                                    return res.json(returnResJsonObj.resJsonOjbect(true,`Not possible to pay order. Please try again later. Error message: ${cb.errorDescription}`, paymentError))
+                                    return res.json(returnResJsonObj.resJsonOjbect(true,`Not possible to pay order. Please try again later. Error message: ${cb.errorDescription===undefined ? cb.messageDescription : cb.errorDescription}`, paymentError))
                                 }else{
                                     if(payment){
                                         io.emit(`${process.env.ORDER}`,{orderId: parseInt(req.body.order_id)})

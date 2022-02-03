@@ -3,13 +3,19 @@ var ApiContracts = require('authorizenet').APIContracts;
 var ApiControllers = require('authorizenet').APIControllers;
 var SDKConstants = require('authorizenet').Constants;
 //var utils = require('../utils.js');
-console.log(process.env.TRASACTION_KEY)
+const APIKEY = process.env.NODE_ENV==='prod' ?  process.env.API_LOGIN_KEY_PROD : process.env.API_LOGIN_KEY_DEV
+const TRANSACTIONKEY = process.env.NODE_ENV==='prod' ? process.env.TRASACTION_KEY_PROD : process.env.TRASACTION_KEY_DEV
+console.log(process.env.NODE_ENV)
+console.log(APIKEY)
+console.log(TRANSACTIONKEY)
+// const APIKEY = process.env.API_LOGIN_KEY_DEV
+// const TRANSACTIONKEY = process.env.TRASACTION_KEY_DEV
 
 exports.chargeCreditCard = (dataObject, callback) => {
     console.log('dataObject -> ',dataObject)
     var merchantAuthenticationType = new ApiContracts.MerchantAuthenticationType()
-    merchantAuthenticationType.setName(process.env.API_LOGIN_KEY)
-    merchantAuthenticationType.setTransactionKey(process.env.TRASACTION_KEY)
+    merchantAuthenticationType.setName(APIKEY)
+    merchantAuthenticationType.setTransactionKey(TRANSACTIONKEY)
 
     var creditCard = new ApiContracts.CreditCardType()
     creditCard.setCardNumber(dataObject.cardNumber)
@@ -25,7 +31,7 @@ exports.chargeCreditCard = (dataObject, callback) => {
     billTo.setEmail(dataObject.email)
 
     var order = new ApiContracts.OrderType()
-    order.setInvoiceNumber(`Order_${dataObject.orderId}`)
+    order.setInvoiceNumber(`Order_${dataObject.orderId}_${new Date().getUTCSeconds()}`)
     order.setDescription("FoodTruck order")
 
     var itemsList = []
@@ -70,8 +76,10 @@ exports.chargeCreditCard = (dataObject, callback) => {
     //console.log(JSON.stringify(createRequest.getJSON(), null, 2));
             
     var ctrl = new ApiControllers.CreateTransactionController(createRequest.getJSON());
-    //Defaults to sandbox
-    //ctrl.setEnvironment(SDKConstants.endpoint.production);
+    if(process.env.NODE_ENV==='prod'){
+        console.log('live account')
+        ctrl.setEnvironment(SDKConstants.endpoint.production);
+    }
 
     ctrl.execute(function(){
 
@@ -102,23 +110,41 @@ exports.chargeCreditCard = (dataObject, callback) => {
             returnObj.accountNumber = response.transactionResponse.accountNumber
             returnObj.accountType = response.transactionResponse.accountType
             returnObj.transHashSha2 = response.transactionResponse.transHashSha2
-            if(response.getMessages().getResultCode() == ApiContracts.MessageTypeEnum.OK){
-                returnObj.error = 0
-                returnObj.messageCode = response.transactionResponse.messages.message[0].code
-                returnObj.messageDescription = response.transactionResponse.messages.message[0].description
-                returnObj.networkTransId = response.transactionResponse.networkTransId
+            if(response.getMessages().getResultCode() === ApiContracts.MessageTypeEnum.OK){
+                if(response.transactionResponse.hasOwnProperty(`messages`)){
+                    returnObj.error = 0
+                    returnObj.messageCode = response.transactionResponse.messages.message[0].code
+                    returnObj.messageDescription = response.transactionResponse.messages.message[0].description
+                    returnObj.networkTransId = response.transactionResponse.networkTransId
+                }else{
+                    console.log('error 1')
+                    returnObj.error = 1
+                    returnObj.messageCode = response.transactionResponse.errors.error[0].errorCode
+                    returnObj.messageDescription = response.transactionResponse.errors.error[0].errorText
+                    // returnObj.networkTransId = response.transactionResponse.networkTransId
+                }
             }
             else {
-                console.log(response.transactionResponse.errors.error[0])
-                returnObj.error = 1
-                returnObj.errorCode = response.transactionResponse.errors.error[0].errorCode
-                returnObj.errorDescription = response.transactionResponse.errors.error[0].errorText
+                console.log('error 2')
+                if(process.env.NODE_ENV==='dev'){
+                    console.log(response.messages.message)
+                    returnObj.error = 1
+                    returnObj.errorCode = response.messages.message[0].code
+                    returnObj.errorDescription = response.messages.message[0].text
+                }else{
+                    returnObj.error = 1
+                    returnObj.errorCode = response.transactionResponse.errors.error[0].errorCode
+                    returnObj.errorDescription = response.transactionResponse.errors.error[0].errorText
+                }
             }
         } else {
+            console.log('error 3')
+            console.log(response.transactionResponse.errors.error[0])
             returnObj.error = 1
             returnObj.errorDescription = (response.messages.message[0].text).replace(/'/ig,'')
             returnObj.errorCode = response.messages.message[0].code
         }
+        console.log(returnObj)
         callback(returnObj);
     });
     }

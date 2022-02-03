@@ -5,7 +5,7 @@ const pool = mysql.createPool({
     multipleStatements: true,
     host: process.env.DB_HOST,
     //database: process.env.DB_DATABASE,
-    database: process.env.DB_DATABASE_TEST,
+    database: process.env.NODE_ENV==='prod' ? process.env.DB_DATABASE_PRODUCTION : process.env.DB_DATABASE_TEST,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     dateStrings: 'date'
@@ -13,7 +13,7 @@ const pool = mysql.createPool({
 pool.query(`SET time_zone = 'America/New_York';`)
 .then(([data,meta])=> {
     console.log(data)
-    pool.query(`SELECT NOW();`)
+    pool.query(`SELECT NOW();SELECT DATABASE();`)
     .then(([now,nowMeta])=>{
         console.log(now)
     })

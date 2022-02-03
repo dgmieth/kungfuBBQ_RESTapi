@@ -4,9 +4,10 @@
   "description": "REST API that will server data to mobile platforms",
   "main": "app/app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node app/app.js &",
-    "startApp": "nodemon -e js,env app/app.js"
+    "test": "jest",
+    "start": "NODE_ENV=prod node app/app.js",
+    "devMode": "NODE_ENV=dev node app/app.js",
+    "startApp": "nodemon -e \"css,js,ejs,env,json\" app/app.js"
   },
   "keywords": [
     "kungfu",
@@ -28,5 +29,8 @@
     "nodemailer": "^6.6.1",
     "redis": "^4.0.1",
     "socket.io": "^4.1.3"
+  },
+  "devDependencies": {
+    "jest": "^27.4.7"
   }
 }
