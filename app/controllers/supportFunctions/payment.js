@@ -1,3 +1,4 @@
+'use strict';
 //npm modules
 var ApiContracts = require('authorizenet').APIContracts;
 var ApiControllers = require('authorizenet').APIControllers;
@@ -73,22 +74,22 @@ exports.chargeCreditCard = (dataObject, callback) => {
 	createRequest.setTransactionRequest(transactionRequestType);
     createRequest.setRefId(dataObject.orderId)
     //pretty print request
-    //console.log(JSON.stringify(createRequest.getJSON(), null, 2));
+    console.log(JSON.stringify(createRequest.getJSON(), null, 2));
             
     var ctrl = new ApiControllers.CreateTransactionController(createRequest.getJSON());
     if(process.env.NODE_ENV==='prod'){
         console.log('live account')
         ctrl.setEnvironment(SDKConstants.endpoint.production);
     }
-
     ctrl.execute(function(){
+        console.log(456)
 
         var apiResponse = ctrl.getResponse();
 
         var response = new ApiContracts.CreateTransactionResponse(apiResponse);
 
         //pretty print response
-        //console.log(JSON.stringify(response, null, 2));
+        console.log(JSON.stringify(response, null, 2));
         var returnObj = {}
         console.log('response is -> ',response,`====== ended`)
         console.log(`=======================================`)
@@ -96,7 +97,7 @@ exports.chargeCreditCard = (dataObject, callback) => {
         console.log(response)
         console.log(`===========PAYMENT RESPONSE============`)
         console.log(`=======================================`)
-        if(response.hasOwnProperty(`refId`)){
+        if(response.messages.resultCode===`Ok`){
             returnObj.refId = response.refId
             returnObj.responseCode = response.transactionResponse.responseCode
             returnObj.authCode = response.transactionResponse.authCode
@@ -105,45 +106,80 @@ exports.chargeCreditCard = (dataObject, callback) => {
             returnObj.cavvResultCode = response.transactionResponse.cavvResultCode
             returnObj.transId = response.transactionResponse.transId
             returnObj.refTransID = response.transactionResponse.refTransID
-            returnObjtransHash = response.transactionResponse.transHash
+            returnObj.transHash = response.transactionResponse.transHash
             returnObj.testRequest = response.transactionResponse.testRequest
             returnObj.accountNumber = response.transactionResponse.accountNumber
             returnObj.accountType = response.transactionResponse.accountType
             returnObj.transHashSha2 = response.transactionResponse.transHashSha2
-            if(response.getMessages().getResultCode() === ApiContracts.MessageTypeEnum.OK){
-                if(response.transactionResponse.hasOwnProperty(`messages`)){
-                    returnObj.error = 0
-                    returnObj.messageCode = response.transactionResponse.messages.message[0].code
-                    returnObj.messageDescription = response.transactionResponse.messages.message[0].description
-                    returnObj.networkTransId = response.transactionResponse.networkTransId
-                }else{
-                    console.log('error 1')
-                    returnObj.error = 1
-                    returnObj.messageCode = response.transactionResponse.errors.error[0].errorCode
-                    returnObj.messageDescription = response.transactionResponse.errors.error[0].errorText
-                    // returnObj.networkTransId = response.transactionResponse.networkTransId
-                }
+            returnObj.networkTransId = response.transactionResponse.networkTransId
+            if(response.transactionResponse.hasOwnProperty(`errors`)){
+                returnObj.error = 1
+                returnObj.messageCode = response.transactionResponse.errors.error[0].errorCode
+                returnObj.messageDescription = response.transactionResponse.errors.error[0].errorText    
+            }else{
+                returnObj.error = 0
+                returnObj.messageCode = response.messages.message[0].code
+                returnObj.messageDescription = response.messages.message[0].text
             }
-            else {
-                console.log('error 2')
-                if(process.env.NODE_ENV==='dev'){
-                    console.log(response.messages.message)
-                    returnObj.error = 1
-                    returnObj.errorCode = response.messages.message[0].code
-                    returnObj.errorDescription = response.messages.message[0].text
-                }else{
-                    returnObj.error = 1
-                    returnObj.errorCode = response.transactionResponse.errors.error[0].errorCode
-                    returnObj.errorDescription = response.transactionResponse.errors.error[0].errorText
-                }
+        }else{
+            if(response.transactionResponse.hasOwnProperty(`errors`)){
+                returnObj.error = 1
+                returnObj.messageCode = response.transactionResponse.errors.error[0].errorCode
+                returnObj.messageDescription = response.transactionResponse.errors.error[0].errorText    
+            }else{
+                returnObj.error = 1
+                returnObj.messageCode = response.messages.message[0].code
+                returnObj.messageDescription = response.messages.message[0].text
             }
-        } else {
-            console.log('error 3')
-            console.log(response.transactionResponse.errors.error[0])
-            returnObj.error = 1
-            returnObj.errorDescription = (response.messages.message[0].text).replace(/'/ig,'')
-            returnObj.errorCode = response.messages.message[0].code
         }
+        // if(response.hasOwnProperty(`refId`)){
+        //     returnObj.refId = response.refId
+        //     returnObj.responseCode = response.transactionResponse.responseCode
+        //     returnObj.authCode = response.transactionResponse.authCode
+        //     returnObj.avsResultCode = response.transactionResponse.avsResultCode
+        //     returnObj.cvvResultCode = response.transactionResponse.cvvResultCode
+        //     returnObj.cavvResultCode = response.transactionResponse.cavvResultCode
+        //     returnObj.transId = response.transactionResponse.transId
+        //     returnObj.refTransID = response.transactionResponse.refTransID
+        //     returnObj.transHash = response.transactionResponse.transHash
+        //     returnObj.testRequest = response.transactionResponse.testRequest
+        //     returnObj.accountNumber = response.transactionResponse.accountNumber
+        //     returnObj.accountType = response.transactionResponse.accountType
+        //     returnObj.transHashSha2 = response.transactionResponse.transHashSha2
+        //     if(response.getMessages().getResultCode() === ApiContracts.MessageTypeEnum.OK){
+        //         if(response.transactionResponse.hasOwnProperty(`messages`)){
+        //             returnObj.error = 0
+        //             returnObj.messageCode = response.transactionResponse.messages.message[0].code
+        //             returnObj.messageDescription = response.transactionResponse.messages.message[0].description
+        //             returnObj.networkTransId = response.transactionResponse.networkTransId
+        //         }else{
+        //             console.log('error 1')
+        //             returnObj.error = 1
+        //             returnObj.messageCode = response.transactionResponse.errors.error[0].errorCode
+        //             returnObj.messageDescription = response.transactionResponse.errors.error[0].errorText
+        //             // returnObj.networkTransId = response.transactionResponse.networkTransId
+        //         }
+        //     }
+        //     else {
+        //         console.log('error 2')
+        //         if(process.env.NODE_ENV==='dev'){
+        //             console.log(response.messages.message)
+        //             returnObj.error = 1
+        //             returnObj.errorCode = response.messages.message[0].code
+        //             returnObj.errorDescription = response.messages.message[0].text
+        //         }else{
+        //             returnObj.error = 1
+        //             returnObj.errorCode = response.transactionResponse.errors.error[0].errorCode
+        //             returnObj.errorDescription = response.transactionResponse.errors.error[0].errorText
+        //         }
+        //     }
+        // } else {
+        //     console.log('error 3')
+        //     // console.log(response.transactionResponse.errors.error[0])
+        //     returnObj.error = 1
+        //     returnObj.errorDescription = (response.messages.message[0].text).replace(/'/ig,'')
+        //     returnObj.errorCode = response.messages.message[0].code
+        // }
         console.log(returnObj)
         callback(returnObj);
     });

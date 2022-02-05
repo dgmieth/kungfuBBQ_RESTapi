@@ -30,7 +30,7 @@ exports.newOrder = (req,res,next) => {
         if(data.length>1){
             var validate = data[1][0]['@returnCode']
             if((validate===-2)){
-                return res.json(returnResJsonObj.resJsonOjbect(true,`The attempt to create your order failed. This cooking date won't take place anymore or it is already closed to orders.`,validate))
+                return res.json(returnResJsonObj.resJsonOjbect(true,`The attempt to create your order failed. This cooking date won't take place anymore or is not opened to orders or it is already closed to orders.`,validate))
             }
             if((validate===-3)){
                 return res.json(returnResJsonObj.resJsonOjbect(true,`The attempt to create your order failed. Because this user already has an active order for this cooking date.`,validate))
@@ -157,10 +157,11 @@ exports.payOrder = (req,res,next) => {
     User.fetchByEmail(req.body.email)
     .then(([userData,userMeta])=>{
         var user = userData[0]
+        // var hasZero = parseInt(req.body.expirationDate.split('-')[1]) <= 9 ? '0':''
         if(user){
             var dataObject = {
                 cardNumber: parseInt(req.body.cardNumber),
-                expirationDate: req.body.expirationDate,
+                expirationDate: `${req.body.expirationDate.split('-')[1]}${req.body.expirationDate.split('-')[0].substring(2,4)}`,
                 cardCode: parseInt(req.body.cardCode),
                 orderId: `${req.body.order_id}`,
                 email: req.body.email,
