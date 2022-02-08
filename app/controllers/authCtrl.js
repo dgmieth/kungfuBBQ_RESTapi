@@ -28,7 +28,7 @@ exports.register = (req,res,next)=> {
         return res.json(returnResJsonObj.resJsonOjbect(true,`{invalidFormat: true,neededFields: {code: 'string',email: 'string',password: 'string',confirmPassword: 'string',mobileOS:'string',phoneNumber:'string',name:'string',}}`,authError))
     }
     const code = req.body.code
-    const email = req.body.email
+    const email = req.body.email.toLowerCase()
     const password = req.body.password 
     const confirmPassword = req.body.confirmPassword
     const os = req.body.mobileOS
@@ -44,7 +44,7 @@ exports.register = (req,res,next)=> {
     //validatePassword
     if(!passwordValidation.validatePasswords(password,confirmPassword)){
         validationObject.hasErrors = true
-        validationObject.msg = validationObject.msg + 'The password is 8 characters long and must contain numbers, letters and at least one CAPITAL letter'
+        validationObject.msg = validationObject.msg + 'The password is 3-8 characters long and must contain numbers, letters and at least one CAPITAL letter'
     }
     if(validationObject.hasErrors){
         return res.json(returnResJsonObj.resJsonOjbect(true,validationObject.msg,authError))

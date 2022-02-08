@@ -116,6 +116,10 @@ exports.chargeCreditCard = (dataObject, callback) => {
                 returnObj.error = 1
                 returnObj.messageCode = response.transactionResponse.errors.error[0].errorCode
                 returnObj.messageDescription = response.transactionResponse.errors.error[0].errorText    
+            }else if(response.transactionResponse.hasOwnProperty(`messages`)){
+                returnObj.error = 0
+                returnObj.messageCode = response.transactionResponse.messages.message[0].code
+                returnObj.messageDescription = response.transactionResponse.messages.message[0].description    
             }else{
                 returnObj.error = 0
                 returnObj.messageCode = response.messages.message[0].code
@@ -126,6 +130,10 @@ exports.chargeCreditCard = (dataObject, callback) => {
                 returnObj.error = 1
                 returnObj.messageCode = response.transactionResponse.errors.error[0].errorCode
                 returnObj.messageDescription = response.transactionResponse.errors.error[0].errorText    
+            }else if(response.transactionResponse.hasOwnProperty(`messages`)){
+                returnObj.error = 1
+                returnObj.messageCode = response.transactionResponse.messages.message[0].code
+                returnObj.messageDescription = response.transactionResponse.messages.message[0].description    
             }else{
                 returnObj.error = 1
                 returnObj.messageCode = response.messages.message[0].code

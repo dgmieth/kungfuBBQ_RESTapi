@@ -162,7 +162,7 @@ exports.payOrder = (req,res,next) => {
             var dataObject = {
                 cardNumber: parseInt(req.body.cardNumber),
                 expirationDate: `${req.body.expirationDate.split('-')[1]}${req.body.expirationDate.split('-')[0].substring(2,4)}`,
-                cardCode: parseInt(req.body.cardCode),
+                cardCode: req.body.cardCode,
                 orderId: `${req.body.order_id}`,
                 email: req.body.email,
                 userName: user[0].name === null || user[0].name === '' ? '' : user[0].name
@@ -173,7 +173,9 @@ exports.payOrder = (req,res,next) => {
                 if(order){
                     dataObject.dish = order[0]
                     var amount = 0.00
-                    order[0].forEach(price =>{amount = amount + parseFloat(price.dishPrice)*price.dishQtty})
+                    console.log(order[0])
+                    order[0].forEach(price =>{
+                        amount = amount + parseFloat(price.dishPrice)*price.dishQtty})
                     dataObject.totalAmount = amount.toFixed(2)
                     Order.validateOrder(parseInt(req.body.order_id))
                     .then(([isPayableData,isPayableMeta])=>{

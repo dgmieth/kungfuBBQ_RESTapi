@@ -7,10 +7,10 @@ var dataObject = {
                 cardNumber: 6550031004587164,
                 expirationDate: '1024',
                 cardCode: 785,
-                orderId: `49`,
+                orderId: `ordersTest2`,
                 email: 'dgmieth@gmail.com',
                 userName: 'dgmieth',
-                totalAmount: .50,
+                totalAmount: .10,
                 dish: [{
                     dishId: 1,
                     dishName: 'name',
@@ -20,6 +20,7 @@ var dataObject = {
 }
 
 test('adds 1 + 2 to equal 3', done => {
+  console.log(process.env.NODE_ENV)
     function callback(data) {
         try {
             expect(data)

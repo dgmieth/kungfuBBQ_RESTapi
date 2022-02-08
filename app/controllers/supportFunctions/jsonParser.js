@@ -37,7 +37,7 @@ exports.activeCookingDateWithinNextSixtyDaysParsed = (arr) => {
                 lat: r.lat  ===null ? -9999999999 : parseFloat(r.lat),
                 lng: r.lng  ===null ? -9999999999 : parseFloat(r.lng),
                 cookingStatusId: r.cookingStatusId,
-                cookingStatus: r.cookingStatus===null ? 'Not informed' : r.cookingStatus ,
+                cookingStatus: r.cookingStatus===null ? 'Not informed' : arr[1].some(r1 => r1.cookingDateId===r.cookingDateId && [5,8,9,10,11].includes(r1.orderStatusId)) ? 'Order paid' : arr[1].some(r1 => r1.cookingDateId===r.cookingDateId) ? r.cookingStatus : 'Close to orders',
                 menuID: r.menuID,
                 dishes: dishes
             })
