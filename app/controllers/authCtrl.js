@@ -14,6 +14,7 @@ const encryption = require('./supportFunctions/encrytpion')
 const passwordValidation = require('./supportFunctions/passwordValidation')
 const io = require('./supportFunctions/socketIO')
 const returnResJsonObj = require('./supportFunctions/returnResJsonObj')
+const validator = require('./supportFunctions/validator')
 //env variables
 const noError = parseInt(process.env.NO_ERROR)
 const normalUser = process.env.NORMAL_USER
@@ -24,31 +25,42 @@ const administrativeUser = parseInt(process.env.ADMINISTRATIVE_USER)
 //REGISTER ==============================================================
 exports.register = (req,res,next)=> {
     console.log(req.body)
-    if(!req.body.email||!req.body.password||!req.body.confirmPassword||!req.body.code||!req.body.mobileOS||!req.body.name||!req.body.phoneNumber){
-        return res.json(returnResJsonObj.resJsonOjbect(true,`{invalidFormat: true,neededFields: {code: 'string',email: 'string',password: 'string',confirmPassword: 'string',mobileOS:'string',phoneNumber:'string',name:'string',}}`,authError))
-    }
+    console.log(`register===================================
+    ===================================
+    ===================================>
+        ${req.body.version_code}
+    <===================================
+    ===================================
+    ===================================
+    `)
+    if(!req.body.email||!req.body.password||!req.body.confirmPassword/*||!req.body.code*/||!req.body.mobileOS||!req.body.name||!req.body.phoneNumber||!req.body.facebookName||!req.body.instagramName){
+        console.log('returnCalled')
+        //code: 'string', removed
+        return res.json(returnResJsonObj.resJsonOjbect(true,`{invalidFormat: true,neededFields: {email: 'string',password: 'string',confirmPassword: 'string',mobileOS:'string',phoneNumber:'string',name:'string',}}`,authError))  }
     const code = req.body.code
     const email = req.body.email.toLowerCase()
     const password = req.body.password 
     const confirmPassword = req.body.confirmPassword
     const os = req.body.mobileOS
-    validationObject = {
-        msg: ''
-    }
+    validationObject = { msg: '' }
+    //validating email
+    if(!validator.validateEmailAddress(email)){
+        validationObject.hasErrors = true
+        validationObject.msg = validationObject.msg + 'Must inform a valid e-mail address. '    }
     //validating passwords
     //check if passowrds match
-    if(password!==confirmPassword){
+    if(!passwordValidation.checkPasswordAndPasswordConfirmationEquality(password,confirmPassword)){
         validationObject.hasErrors = true
-        validationObject.msg = validationObject.msg + 'Password and password confirmation do not match. '
-    }
+        validationObject.msg = validationObject.msg + 'Password and password confirmation do not match. '   }
+    if(!passwordValidation.checkPasswordAndPasswordConfirmationLength(password,confirmPassword)){
+        validationObject.hasErrors = true
+        validationObject.msg = validationObject.msg + 'Password must be 3 to 20 characters long. '   }
     //validatePassword
     if(!passwordValidation.validatePasswords(password,confirmPassword)){
         validationObject.hasErrors = true
-        validationObject.msg = validationObject.msg + 'The password is 3-8 characters long and must contain numbers, letters and at least one CAPITAL letter'
-    }
+        validationObject.msg = validationObject.msg + 'The password must be 3-20 characters long and must contain numbers and lower and UPPER case letters'  }
     if(validationObject.hasErrors){
-        return res.json(returnResJsonObj.resJsonOjbect(true,validationObject.msg,authError))
-    }
+        return res.json(returnResJsonObj.resJsonOjbect(true,validationObject.msg,authError))    }
     //encrypting passwrod
     encryption.hash(password,saltRounds)
     .then(hashedPassword => {
@@ -57,31 +69,28 @@ exports.register = (req,res,next)=> {
             user.setPassword = hashedPassword
             user.setCode = code
             user.setMobileOS = os
-            user.setName = req.body.name
-            user.setName = req.body.name === 'none' ? '' : req.body.name
-            user.setPhoneNumber = req.body.phoneNumber === 'none' ? '' : req.body.phoneNumber
-            user.setFacebookName = req.body.facebookName === 'none' ? '' : req.body.facebookName
-            user.setInstagramName = req.body.instagramName === 'none' ? '' : req.body.instagramName
+            user.setName = validator.stringContent(req.body.name)
+            user.setPhoneNumber = validator.stringContent(req.body.phoneNumber)
+            user.setFacebookName = validator.stringContent(req.body.facebookName)
+            user.setInstagramName = validator.stringContent(req.body.instagramName)
             user.save()
             .then(([userData,userMetaData])=>{
+                console.log(userData)
                 var validate = parseInt(userData[1][0]['returnCode'])
-                if(validate===-1){
-                    return res.json(returnResJsonObj.resJsonOjbect(true,`Invitation code does not exist.`,validate))
-                }
                 if(validate===-2){
-                    return res.json(returnResJsonObj.resJsonOjbect(true,`This code was not issued for this email.`,validate))
-                }
+                    return res.json(returnResJsonObj.resJsonOjbect(true,`Invitation code does not exist.`,validate))   }
                 if(validate===-3){
-                    return res.json(returnResJsonObj.resJsonOjbect(true,`This e-mail is already in use by another user in our database`,validate))
-                }
+                    return res.json(returnResJsonObj.resJsonOjbect(true,`This code was not issued for this email.`,validate))   }
+                if(validate===-4){
+                    return res.json(returnResJsonObj.resJsonOjbect(true,`This e-mail is already in use by another user in our database`,validate))  }
                 User.fetchByEmail(user.email)
                 .then(([data3,meta3])=>{
                     const token = returnLoggedInUserInfo(data3[0],normalUser).token
                     io.emit(`${process.env.CUSTOMER}`,{userId: user.id, email: user.email})
-                    return res.json(returnLoggedInUserInfo(data3[0],normalUser))})
+                    return res.status(200).json(returnLoggedInUserInfo(data3[0],normalUser))})
                 .catch(err => {
                     console.log('fetchUser error inner -> ',err)
-                    return res.json(returnResJsonObj.resJsonOjbect(true,`Not possible to retrieve saved user information from database`,authError))})})
+                    return res.json(returnResJsonObj.resJsonOjbect(true,`There isn't an active user for this e-mail in KungfuBBQ database.`,authError))})})
         }else{
             return res.json(returnResJsonObj.resJsonOjbect(true,`Not possible to encrypt user password properly`,authError))}})
     .catch(err => {
@@ -91,6 +100,14 @@ exports.register = (req,res,next)=> {
 //LOGIN ==============================================================
 exports.login = (req,res,next)=>{
     console.log(req.body)
+    console.log(`login===================================
+    ===================================
+    ===================================>
+        ${req.body.version_code}
+    <===================================
+    ===================================
+    ===================================
+    `)
     if(!req.body.email||!req.body.password||!req.body.mobileOS){
         return res.json(returnResJsonObj.resJsonOjbect(true,`{invalidFormat: true,neededFields: {email: 'string',password: 'string',mobileOS:'string'}}`,authError))
     }
@@ -98,6 +115,7 @@ exports.login = (req,res,next)=>{
     const password = req.body.password 
     User.fetchByEmail(email)
     .then(([data,meat])=> {
+        console.log(data)
         var userInfo = data[0][0]
         encryption.compare(password,userInfo.password)
         .then(correct => {
@@ -116,7 +134,7 @@ exports.login = (req,res,next)=>{
             return res.json(returnResJsonObj.resJsonOjbect(true,`Incorrect password.`,authError))})})
     .catch(err => {
         console.log('fetchUser -> ',err)
-        return res.json(returnResJsonObj.resJsonOjbect(true,`Not possible to retrieve user information from database`,authError))})
+        return res.json(returnResJsonObj.resJsonOjbect(true,`There isn't an active user for this e-mail in KungfuBBQ database.`,authError))})
 }
 //=====================================================================
 //=====================================================================
@@ -158,18 +176,14 @@ exports.isAuth = (req,res,next) => {
             let decodedToken = tokenManager.verifyToken(token)
             if(decodedToken){
                 if(decodedToken.email!==req.body.email&&decodedToken.id!==req.body.id){
-                    return res.json(returnResJsonObj.resJsonOjbect(true,`Invalid token for this user. Please authenticate at /login/login`,parseInt(loginError)))    
-                }
+                    return res.json(returnResJsonObj.resJsonOjbect(true,`Invalid token for this user. Please authenticate at /login/login`,parseInt(loginError)))      }
                 next()
             }else{
-                return res.json(returnResJsonObj.resJsonOjbect(true,`User has not been authenticated. Please authenticate at /login/login`,parseInt(loginError)))
-            }
+                return res.json(returnResJsonObj.resJsonOjbect(true,`User has not been authenticated. Please authenticate at /login/login`,parseInt(loginError)))   }
         }catch(e){
-            return res.json(returnResJsonObj.resJsonOjbect(true,`Invalid token for this user. Please authenticate at /login/login`,parseInt(loginError)))
-        }
+            return res.json(returnResJsonObj.resJsonOjbect(true,`Invalid token for this user. Please authenticate at /login/login`,parseInt(loginError)))   }
     }else {
-        return res.json(returnResJsonObj.resJsonOjbect(true,`No token found in request. Please authenticate at /login/login`,parseInt(loginError)))
-    }
+        return res.json(returnResJsonObj.resJsonOjbect(true,`No token found in request. Please authenticate at /login/login`,parseInt(loginError)))     }
 }
 exports.isAuthGet = (req,res,next) => {
     if(req.get('Authorization')){
@@ -178,18 +192,14 @@ exports.isAuthGet = (req,res,next) => {
             let decodedToken = tokenManager.verifyToken(token)
             if(decodedToken){
                 if(decodedToken.email!==req.query.email&&decodedToken.id!==req.query.id){
-                    return res.json(returnResJsonObj.resJsonOjbect(true,`Invalid token for this user. Please authenticate at /login/login`,parseInt(loginError)))    
-                }
+                    return res.json(returnResJsonObj.resJsonOjbect(true,`Invalid token for this user. Please authenticate at /login/login`,parseInt(loginError)))   }
                 next()
             }else{
-                return res.json(returnResJsonObj.resJsonOjbect(true,`User has not been authenticated. Please authenticate at /login/login`,parseInt(loginError)))
-            }
+                return res.json(returnResJsonObj.resJsonOjbect(true,`User has not been authenticated. Please authenticate at /login/login`,parseInt(loginError)))   }
         }catch(e){
-            return res.json(returnResJsonObj.resJsonOjbect(true,`Invalid token for this user. Please authenticate at /login/login`,parseInt(loginError)))
-        }
+            return res.json(returnResJsonObj.resJsonOjbect(true,`Invalid token for this user. Please authenticate at /login/login`,parseInt(loginError)))   }
     }else {
-        return res.json(returnResJsonObj.resJsonOjbect(true,`No token found in request. Please authenticate at /login/login`,parseInt(loginError)))
-    }
+        return res.json(returnResJsonObj.resJsonOjbect(true,`No token found in request. Please authenticate at /login/login`,parseInt(loginError)))     }
 }
 //
 //ISVALID RESET PASSWORD TOKEN========================================

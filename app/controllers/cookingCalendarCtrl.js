@@ -16,11 +16,20 @@ const dataError = parseInt(process.env.DATA_ERROR)
 //controller functions
 // GET ALL ACTIVE COOKING DATES ================================================
 // -----------------------------------------------------------------------------
-exports.activeCookingDatesWithinSixtyDays = (req,res,next) => {
-    CookingCalendar.activeCookingDateWithinNextSixtyDays(parseInt(req.query.id))
+exports.activeCookingDateWithinNextTwelveMonths = (req,res,next) => {
+    console.log(`cookingCalendar===================================
+    ===================================
+    ===================================>
+        ${req.query.version_code}
+        ${req.query.mobileOS}
+    <===================================
+    ===================================
+    ===================================
+    `)
+    CookingCalendar.activeCookingDateWithinNextTwelveMonths(parseInt(req.query.id))
     .then(([data,meta])=>{
         if(data){
-            return res.json(returnResJsonObj.resJsonOjbect(false,jsonParser.activeCookingDateWithinNextSixtyDaysParsed(data),noError))
+            return res.json(returnResJsonObj.resJsonOjbect(false,jsonParser.activeCookingDateWithinNextTwelveMonthsParsed(data),noError))
         }else{
             return res.json(returnResJsonObj.resJsonOjbect(true,`It was not possible to retrieve information about cooking calendar and orders!`, dataError))}})
     .catch(err => {

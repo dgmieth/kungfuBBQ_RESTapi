@@ -10,6 +10,10 @@ module.exports = class Payment{
 //=======================================================================================================
     static payOrder(jsonObject){
         console.log('payOrderCalled')
-        return db.query(`CALL payOrder('${jsonObject}');`)
+        return db.query(`CALL foodtruck_payment_payOrder('${jsonObject}');`)
+    }
+    static payAtPickup(orderId,userId,cdId){
+        console.log('entrou no Payment')
+        return db.query(`CALL footruck_payment_payAtPickUp(?, ?,?);`,[`${orderId}`,`${userId}`,`${cdId}`])
     }
 }

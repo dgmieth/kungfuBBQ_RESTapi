@@ -1,5 +1,5 @@
 //support functions
-exports.activeCookingDateWithinNextSixtyDaysParsed = (arr) => {
+exports.activeCookingDateWithinNextTwelveMonthsParsed = (arr) => {
     var ctrlId = -1
     var cdArray = []
     var oArray = []
@@ -18,8 +18,9 @@ exports.activeCookingDateWithinNextSixtyDaysParsed = (arr) => {
                     dishId: ff.dishId,
                     dishName: ff.dishName,
                     dishPrice: ff.dishPrice,
-                    dishIngredients: ff.dishIngredients ===null ? 'Not informed' : ff.dishIngredients,
-                    dishDescription: ff.dishDescription ===null ? 'Not informed' : ff.dishDescription
+                    dishFifo: ff.dishFifo,
+                    dishIngredients: ff.dishIngredients ===null ? '' : ff.dishIngredients,
+                    dishDescription: ff.dishDescription ===null ? '' : ff.dishDescription
                 })
             })
             cdArray.push({
@@ -37,9 +38,15 @@ exports.activeCookingDateWithinNextSixtyDaysParsed = (arr) => {
                 lat: r.lat  ===null ? -9999999999 : parseFloat(r.lat),
                 lng: r.lng  ===null ? -9999999999 : parseFloat(r.lng),
                 cookingStatusId: r.cookingStatusId,
-                cookingStatus: r.cookingStatus===null ? 'Not informed' : arr[1].some(r1 => r1.cookingDateId===r.cookingDateId && [5,8,9,10,11].includes(r1.orderStatusId)) ? 'Order paid' : arr[1].some(r1 => r1.cookingDateId===r.cookingDateId) ? r.cookingStatus : 'Close to orders',
+                cookingStatus: r.cookingStatus===null ? 'Not informed' : 
+                                [1,2,3,4].includes(r.cookingStatusId) ? r.cookingStatus : 
+                                arr[1].some(r1 => r1.cookingDateId===r.cookingDateId && [5,8,9,10,11].includes(r1.orderStatusId)) ? 'Order paid' : 
+                                arr[1].some(r1 => r1.cookingDateId===r.cookingDateId && r1.orderStatusId === 3) ? 'Accepting payments' :
+                                arr[1].some(r1 => r1.cookingDateId===r.cookingDateId && r1.orderStatusId === 4) ? 'Order on wait list' :
+                                'Close to orders',
                 menuID: r.menuID,
-                dishes: dishes
+                dishes: dishes,
+                cookingDateAmPm:r.cookingDateAmPm
             })
         }
     })
@@ -62,6 +69,7 @@ exports.activeCookingDateWithinNextSixtyDaysParsed = (arr) => {
                         dishId: ff.dishId,
                         dishName: ff.dishName,
                         dishQtty: ff.dishQtty,
+                        dishFifo: ff.dishFifo,
                         dishPrice: ff.dishPrice,
                         observation: ff.observation ===null ? 'Not informed' : ff.observation
                     })
@@ -88,9 +96,11 @@ exports.activeCookingDateWithinNextSixtyDaysParsed = (arr) => {
                 userEmail: r.userEmail,
                 userPhoneNumber: r.userPhoneNumber,
                 dishes: innerArrayDish,
-                extras: innerArrayExtras
+                extras: innerArrayExtras,
+                tipAmount: r.tipAmount === null ? 0 : r.tipAmount
             })
         }
     })
+    //onsole.log(oArray[0].tipAmount)
     return [cdArray,oArray]
 }

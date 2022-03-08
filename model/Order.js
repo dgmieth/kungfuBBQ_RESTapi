@@ -20,15 +20,15 @@ module.exports = class Order{
 //INSTANCE METHODS ======================================================================================
 //=======================================================================================================
     deleteOrder(){
-        return db.query(`CALL deleteOrder(?,?,@returnCode);SELECT @returnCode as returnCode;`,
+        return db.query(`CALL foodtruck_order_deleteOrder(?,?,@returnCode);SELECT @returnCode as returnCode;`,
         [`${this.orderId}`,`${this.userId}`])
     }
     updateOrder(){
-        return db.query(`CALL updateOrder(?,?,?,@returnCode);SELECT @returnCode as returnCode;`,
+        return db.query(`CALL foodtruck_order_updateOrderByUser(?,?,?,@returnCode);SELECT @returnCode as returnCode;`,
         [`${this.orderId}`,`${this.userId}`,`${this.qtty}`])
     }
     deleteMadeToListOrder(){
-        return db.query(`CALL deleteMadeToListOrder(?,?,?, @returnCode);SELECT @returnCode as returnCode;`,
+        return db.query(`CALL foodtruck_order_deleteSelectedOrderByUser(?,?,?, @returnCode);SELECT @returnCode as returnCode;`,
         [`${this.userId}`,`${this.cookingDateId}`,`${this.orderId}`])
     }
 //=======================================================================================================
@@ -36,13 +36,13 @@ module.exports = class Order{
 //=======================================================================================================
     static newOrder(dataObject){
         const newJson = JSON.stringify(dataObject)
-        return db.query(`CALL createNewOrder('${newJson}',@returnCode,@orderIdOut);SELECT @returnCode;SELECT @orderIdOut;`)
+        return db.query(`CALL foodtruck_order_newOrder('${newJson}',@returnCode,@orderIdOut);SELECT @returnCode;SELECT @orderIdOut;`)
     }
     static getDishes(orderId){
-        return db.query(`CALL getOrderDishes(?);`,[`${orderId}`])
+        return db.query(`CALL foodtruck_order_getDishesForPaymentModule(?);`,[`${orderId}`])
     }
     static validateOrder(orderId){
-        return db.query(`CALL validateOrder(?, @returnCode);SELECT @returnCode as returnCode;`,
+        return db.query(`CALL foodtruck_order_validateOrder(?, @returnCode);SELECT @returnCode as returnCode;`,
         [`${orderId}`])
     }
 }

@@ -11,5 +11,6 @@ OrderRouter.post('/deleteOrder', authController.isAuth, OrderCtrl.deleteOrder)
 OrderRouter.post('/updateOrder', authController.isAuth, OrderCtrl.updateOrder)
 OrderRouter.post('/cancelMadeToListOrder', authController.isAuth, OrderCtrl.cancelMadeToListOrder)
 OrderRouter.post('/payOrder', authController.isAuth, OrderCtrl.payOrder)
+OrderRouter.post('/payAtPickup', authController.isAuth, OrderCtrl.payAtPickup)
 //exporting router
 module.exports = OrderRouter

@@ -6,6 +6,7 @@ var SDKConstants = require('authorizenet').Constants;
 //var utils = require('../utils.js');
 const APIKEY = process.env.NODE_ENV==='prod' ?  process.env.API_LOGIN_KEY_PROD : process.env.API_LOGIN_KEY_DEV
 const TRANSACTIONKEY = process.env.NODE_ENV==='prod' ? process.env.TRASACTION_KEY_PROD : process.env.TRASACTION_KEY_DEV
+const itemCounter = 30
 console.log(process.env.NODE_ENV)
 console.log(APIKEY)
 console.log(TRANSACTIONKEY)
@@ -37,6 +38,14 @@ exports.chargeCreditCard = (dataObject, callback) => {
 
     var itemsList = []
     var counter = 0
+    if(dataObject.tip > 0){
+        var lineItem = new ApiContracts.LineItemType()
+        lineItem.setItemId(`tipFromUser`)
+        lineItem.setName('tip')
+        lineItem.setUnitPrice(parseFloat(dataObject.tip).toFixed(2))
+        lineItem.setQuantity(1)
+        itemsList.push(lineItem)
+    }
     dataObject.dish.forEach(dish => {
         // console.log(dish)
         var lineItem = new ApiContracts.LineItemType()
@@ -46,7 +55,7 @@ exports.chargeCreditCard = (dataObject, callback) => {
         lineItem.setQuantity(parseFloat(dish.dishQtty).toFixed(2))
         itemsList.push(lineItem)
         counter += 1
-        if(counter>=30){
+        if(counter>= dataObject.tip > 0 ? itemCounter - 1 : itemCounter){
             return 
         }
     })
@@ -114,8 +123,8 @@ exports.chargeCreditCard = (dataObject, callback) => {
             returnObj.networkTransId = response.transactionResponse.networkTransId
             if(response.transactionResponse.hasOwnProperty(`errors`)){
                 returnObj.error = 1
-                returnObj.messageCode = response.transactionResponse.errors.error[0].errorCode
-                returnObj.messageDescription = response.transactionResponse.errors.error[0].errorText    
+                returnObj.errorCode = response.transactionResponse.errors.error[0].errorCode
+                returnObj.errorDescription = response.transactionResponse.errors.error[0].errorText    
             }else if(response.transactionResponse.hasOwnProperty(`messages`)){
                 returnObj.error = 0
                 returnObj.messageCode = response.transactionResponse.messages.message[0].code
@@ -128,16 +137,16 @@ exports.chargeCreditCard = (dataObject, callback) => {
         }else{
             if(response.transactionResponse.hasOwnProperty(`errors`)){
                 returnObj.error = 1
-                returnObj.messageCode = response.transactionResponse.errors.error[0].errorCode
-                returnObj.messageDescription = response.transactionResponse.errors.error[0].errorText    
+                returnObj.errorCode = response.transactionResponse.errors.error[0].errorCode
+                returnObj.errorDescription = response.transactionResponse.errors.error[0].errorText    
             }else if(response.transactionResponse.hasOwnProperty(`messages`)){
                 returnObj.error = 1
-                returnObj.messageCode = response.transactionResponse.messages.message[0].code
-                returnObj.messageDescription = response.transactionResponse.messages.message[0].description    
+                returnObj.errorCode = response.transactionResponse.messages.message[0].code
+                returnObj.errorDescription = response.transactionResponse.messages.message[0].description    
             }else{
                 returnObj.error = 1
-                returnObj.messageCode = response.messages.message[0].code
-                returnObj.messageDescription = response.messages.message[0].text
+                returnObj.errorCode = response.messages.message[0].code
+                returnObj.errorDescription = response.messages.message[0].text
             }
         }
         // if(response.hasOwnProperty(`refId`)){

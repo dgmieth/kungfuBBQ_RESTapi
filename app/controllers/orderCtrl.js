@@ -11,6 +11,7 @@ const Payment = require('../../model/Payment')
 const io = require('./supportFunctions/socketIO')
 const returnResJsonObj = require('./supportFunctions/returnResJsonObj')
 const payment = require('./supportFunctions/payment')
+var validator = require('./supportFunctions/validator')
 //env variables
 const cantCreateOrder = parseInt(process.env.DB_NEW_ORDER_COULDNT_CREATE)
 const orderError = parseInt(process.env.ORDER_ERROR)
@@ -23,35 +24,39 @@ const paymentError = parseInt(process.env.PAYMENT_ERROR)
 exports.newOrder = (req,res,next) => {
     console.log(req.body)
     if(!req.body.email||!req.body.id||!req.body.cookingDate_id||!req.body.dish_id||!req.body.dish_qtty||!req.body.extras_id||!req.body.extras_qtty){
-        return res.json(returnResJsonObj.resJsonOjbect(true,`{invalidFormat: true,neededFields: {email: 'string',id: 'integer',cookingDate_id: 'integer',dish_id: ['integer','integer'],dish_qtty: ['integer','integer'],extras_id: ['integer','integer'],extras_qtty: ['integer','integer']}}`,orderError))}
+        return res.json(returnResJsonObj.resJsonOjbect(true,`{invalidFormat: true,neededFields: {email: 'string',id: 'integer',cookingDate_id: 'integer',dish_id: ['integer','integer'],dish_qtty: ['integer','integer'],extras_id: ['integer','integer'],extras_qtty: ['integer','integer']}}`,orderError))    }
     Order.newOrder(req.body)
     .then(([data,meta])=>{
-        console.log(data)
+        // console.log(data)
         if(data.length>1){
             var validate = data[1][0]['@returnCode']
             if((validate===-2)){
-                return res.json(returnResJsonObj.resJsonOjbect(true,`The attempt to create your order failed. This cooking date won't take place anymore or is not opened to orders or it is already closed to orders.`,validate))
-            }
+                return res.json(returnResJsonObj.resJsonOjbect(true,`The attempt to create your order failed. This cooking date won't take place anymore or is not opened to orders or it is already closed to orders.`,validate))  }
             if((validate===-3)){
-                return res.json(returnResJsonObj.resJsonOjbect(true,`The attempt to create your order failed. Because this user already has an active order for this cooking date.`,validate))
-            }
+                return res.json(returnResJsonObj.resJsonOjbect(true,`The attempt to create your order failed. Because this user already has an active order for this cooking date.`,validate))  }
+            if((validate===-4)){
+                return res.json(returnResJsonObj.resJsonOjbect(true,`Wrong sequence of dishes.`,validate))  }
+            if((validate===-5)){
+                return res.json(returnResJsonObj.resJsonOjbect(true,`Wrong sequence of dishes.`,validate))  }
+            if((validate===-6)){
+                return res.json(returnResJsonObj.resJsonOjbect(true,`User does not exist.`,validate))   }
+            if((validate===-7)){
+                return res.json(returnResJsonObj.resJsonOjbect(true,`Your order creation request has not dishes.`,validate))    }
             io.emit(`${process.env.ORDER}`,{orderId: (data[2][0])['@orderIdOut']})
             return res.json(returnResJsonObj.resJsonOjbect(false,`Order successfully created`,noError))
         }else {
-            return res.json(returnResJsonObj.resJsonOjbect(true,`The attempt to create your order failed. Please try again and/or restart the app. If the problem persists, contact Kungfu BBQ.`,orderError))}})
+            return res.json(returnResJsonObj.resJsonOjbect(true,`The attempt to create your order failed. Please try again and/or restart the app. If the problem persists, contact Kungfu BBQ.`,orderError))   }   })
     .catch(err => {
         console.log(err)
-        return res.json(returnResJsonObj.resJsonOjbect(true,`The attempt to create your order failed. Please try again and/or restart the app. If the problem persists, contact Kungfu BBQ.`,orderError))})
+        return res.json(returnResJsonObj.resJsonOjbect(true,`The attempt to create your order failed. Please try again and/or restart the app. If the problem persists, contact Kungfu BBQ.`,orderError))   })
 }
 // delete order  ---------------------------------------------------------------
 // -----------------------------------------------------------------------------
 exports.deleteOrder = (req,res,next) => {
     console.log('/api/order/deleteOrder -> ')
     console.log(req.body)
-    var validationObject = {}
     if(!req.body.order_id||!req.body.id||!req.body.email){
-        return res.json(returnResJsonObj.resJsonOjbect(true,`{invalidFormat: true,neededFields: {order_id: 'integer',id: 'integer', email: 'string'}}`,orderError))
-    }
+        return res.json(returnResJsonObj.resJsonOjbect(true,`{invalidFormat: true,neededFields: {order_id: 'integer',id: 'integer', email: 'string'}}`,orderError)) }
     const order = new Order(parseInt(req.body.order_id))
     order.setUser = parseInt(req.body.id)
     order.deleteOrder()
@@ -60,24 +65,22 @@ exports.deleteOrder = (req,res,next) => {
         var validate = parseInt(orderData[1][0]['returnCode'])
         console.log('validate is->',validate)
         if(validate===-2){
-            return res.json(returnResJsonObj.resJsonOjbect(true,`This order has already being deleted`, validate))
-        }
+            return res.json(returnResJsonObj.resJsonOjbect(true,`This order has already being deleted`, validate))  }
         if(validate===-3){
-            return res.json(returnResJsonObj.resJsonOjbect(true,`This order cannot be deleted because it has already being paid`, validate))
-        }
+            return res.json(returnResJsonObj.resJsonOjbect(true,`This order cannot be deleted because it has already being paid`, validate))    }
         if(validate===-4){
-            return res.json(returnResJsonObj.resJsonOjbect(true,`This order cannot be updated on this screen anymore. You'll be redirected to the calendar`, validate))
-        }
+            return res.json(returnResJsonObj.resJsonOjbect(true,`This order cannot be updated any more.`, validate)) }
+        if(validate===-5){
+            return res.json(returnResJsonObj.resJsonOjbect(true,`User does not exist`, validate)) }
         var data = orderData[0]
-        console.log('data is ->',data)
         if(data){
             io.emit(`${process.env.ORDER}`,{orderId: parseInt(req.body.order_id)})
             return res.json(returnResJsonObj.resJsonOjbect(false,`Order successfully deleted`, noError))
         }else{
-            return res.json(returnResJsonObj.resJsonOjbect(true,`It was not possible to delete the order right now! No data returned from database`, orderError))}})
+            return res.json(returnResJsonObj.resJsonOjbect(true,`It was not possible to delete the order right now! No data returned from database`, orderError))   }   })
     .catch(err => {
         console.log('deleteOrder error ->',err)
-        return res.json(returnResJsonObj.resJsonOjbect(true,`It was not possible to delete the order right now! ${err}`, orderError))})
+        return res.json(returnResJsonObj.resJsonOjbect(true,`It was not possible to delete the order right now! ${err}`, orderError))   })
 }
 // update order  ---------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -94,17 +97,17 @@ exports.updateOrder = (req,res,next) => {
     .then(([orderData,orderMeta])=>{
         var validate = parseInt(orderData[1][0]['returnCode'])
         if(validate===-2){
-            return res.json(returnResJsonObj.resJsonOjbect(true,`The attempt to update order failed because this cooking date won't take place anymore.`, validate))
-        }
+            return res.json(returnResJsonObj.resJsonOjbect(true,`The attempt to update order failed because this cooking date won't take place anymore.`, validate))    }
         if(validate===-3){
-            return res.json(returnResJsonObj.resJsonOjbect(true,`The attempt to update order failed, because this order has been previously deleted`, validate))
-        }
+            return res.json(returnResJsonObj.resJsonOjbect(true,`The attempt to update order failed, because this order has been previously deleted`, validate))    }
         if(validate===-4){
-            return res.json(returnResJsonObj.resJsonOjbect(true,`This cooking date is not in a state that accepts order updates.`, validate))
-        }
+            return res.json(returnResJsonObj.resJsonOjbect(true,`This cooking date is not in a state that accepts order updates.`, validate))   }
         if(validate===-5){
-            return res.json(returnResJsonObj.resJsonOjbect(true,`This order cannot be updated because it has already been paid.`, validate))
-        }
+            return res.json(returnResJsonObj.resJsonOjbect(true,`This order cannot be updated because it has already been paid.`, validate))    }
+        if(validate===-6){
+            return res.json(returnResJsonObj.resJsonOjbect(true,`There is something wrong with your order. Please contact KungfuBBQ.`, validate))   }
+        if(validate===-7){
+            return res.json(returnResJsonObj.resJsonOjbect(true,`User does not exist.`, validate))   }
         var data = orderData[0]
         if(data){
             io.emit(`${process.env.ORDER}`,{orderId: parseInt(req.body.order_id)})
@@ -135,6 +138,9 @@ exports.cancelMadeToListOrder = (req,res,next) => {
             return res.json(returnResJsonObj.resJsonOjbect(true,`The attempt to delete order failed because it has been paid already.`, validate))
         }
         if(validate===-4){
+            return res.json(returnResJsonObj.resJsonOjbect(true,`The attempt to delete order failed because it is in the waiting list.`, validate))
+        }
+        if(validate===-5){
             return res.json(returnResJsonObj.resJsonOjbect(true,`This cooking date does not accept order updates anymore.`, validate))
         }
         var data = orderData[0]
@@ -152,10 +158,13 @@ exports.cancelMadeToListOrder = (req,res,next) => {
 exports.payOrder = (req,res,next) => {
     console.log(req.body)
     if(!req.body.order_id||!req.body.email||!req.body.id||!req.body.cookingDate_id||!req.body.cardCode||!req.body.cardNumber||!req.body.expirationDate){
-        return res.json(returnResJsonObj.resJsonOjbect(true,`{invalidFormat: true,neededFields: {order_id: 'integer',id: 'integer',email: 'string',cookingDate_id:'integer',cardCode: 'string',cardNumber: 'string',expirationDate: 'string'}}`,orderError))
-    }
+        return res.json(returnResJsonObj.resJsonOjbect(true,`{invalidFormat: true,neededFields: {order_id: 'integer',id: 'integer',email: 'string',cookingDate_id:'integer',cardCode: 'string',cardNumber: 'string',expirationDate: 'string',tip:'integer'(optional)}}`,orderError))     }
+    console.log('afterValidation')
+    var tip = !req.body.tip ? 0 : parseFloat(parseFloat(req.body.tip).toFixed(2))
+    console.log('tips is -> ',tip)
     User.fetchByEmail(req.body.email)
     .then(([userData,userMeta])=>{
+        console.log(userData)
         var user = userData[0]
         // var hasZero = parseInt(req.body.expirationDate.split('-')[1]) <= 9 ? '0':''
         if(user){
@@ -165,45 +174,44 @@ exports.payOrder = (req,res,next) => {
                 cardCode: req.body.cardCode,
                 orderId: `${req.body.order_id}`,
                 email: req.body.email,
-                userName: user[0].name === null || user[0].name === '' ? '' : user[0].name
-            }
+                tip: tip = tip === '' || tip === undefined || tip === null ? 0 : parseFloat(tip),
+                userName: user[0].name === null || user[0].name === '' ? '' : user[0].name  }
+            console.log('user ---> ',dataObject)
             Order.getDishes(parseInt(req.body.order_id))
             .then(([order,orderM])=>{
                 console.log('order from getDishes is -> ',order)
                 if(order){
                     dataObject.dish = order[0]
-                    var amount = 0.00
-                    console.log(order[0])
-                    order[0].forEach(price =>{
-                        amount = amount + parseFloat(price.dishPrice)*price.dishQtty})
-                    dataObject.totalAmount = amount.toFixed(2)
+                    var amount = tip
+                    order[0].forEach(price =>{  amount = amount + parseFloat(price.dishPrice)*price.dishQtty     })
+                    dataObject.totalAmount = parseFloat(parseFloat(amount).toFixed(2))
+                    console.log(dataObject.totalAmount)
                     Order.validateOrder(parseInt(req.body.order_id))
                     .then(([isPayableData,isPayableMeta])=>{
                         var validate = parseInt(isPayableData[1][0]['returnCode'])
                         if(validate===-2){
-                            return res.json(returnResJsonObj.resJsonOjbect(true,`The attempt to pay order failed because it has been previously deleted.`, validate))
-                        }
+                            return res.json(returnResJsonObj.resJsonOjbect(true,`The attempt to pay order failed because it has been previously deleted.`, validate))   }
                         if(validate===-3){
-                            return res.json(returnResJsonObj.resJsonOjbect(true,`The attempt to pay order failed because this cooking date won't take place anymore.`, validate))
-                        }
+                            return res.json(returnResJsonObj.resJsonOjbect(true,`The attempt to pay order failed because this cooking date won't take place anymore.`, validate))   }
                         if(validate===-4){
-                            return res.json(returnResJsonObj.resJsonOjbect(true,`The attempt to pay order failed because it has been previously paid.`, validate))
-                        }
+                            return res.json(returnResJsonObj.resJsonOjbect(true,`The attempt to pay order failed because it has been previously paid.`, validate))  }
                         if(validate===-5){
-                            return res.json(returnResJsonObj.resJsonOjbect(true,`The attempt to pay order failed because it did not made to this cooking date list.`, validate))
-                        }
+                            return res.json(returnResJsonObj.resJsonOjbect(true,`The attempt to pay order failed because it did not made to this cooking date list.`, validate))    }
                         if(validate===-6){
-                            return res.json(returnResJsonObj.resJsonOjbect(true,`The attempt to pay order failed because this order is still wainting for dropped out orders.`, validate))
-                        }
+                            return res.json(returnResJsonObj.resJsonOjbect(true,`The attempt to pay order failed because this order is still wainting for dropped out orders.`, validate))  }
                         if(validate===-7){
-                            return res.json(returnResJsonObj.resJsonOjbect(true,`This cooking date isn't accepting payment yet.`, validate))
-                        }
+                            return res.json(returnResJsonObj.resJsonOjbect(true,`This cooking date isn't accepting payment yet.`, validate))    }
+                        if(validate===-8){
+                            return res.json(returnResJsonObj.resJsonOjbect(true,`Something is wrong with your order. Please contact kungfuBBQ.`, validate))    }
+                        if(validate===-9){
+                            return res.json(returnResJsonObj.resJsonOjbect(true,`User does not exist.`, validate))    }   
                         payment.chargeCreditCard(dataObject,(cb)=> {        
                             console.log(cb)
                             cb.user_id = user[0].id
                             cb.order_id = req.body.order_id
                             cb.cookingDate_id = req.body.cookingDate_id
                             cb.amount = amount
+                            cb.tip = tip === '' || tip === undefined || tip === null ? 0 : parseFloat(tip)
                             Payment.payOrder(JSON.stringify(cb))
                             .then(([payment,paymentM])=>{
                                 console.log(payment)
@@ -214,19 +222,62 @@ exports.payOrder = (req,res,next) => {
                                         io.emit(`${process.env.ORDER}`,{orderId: parseInt(req.body.order_id)})
                                         return res.json(returnResJsonObj.resJsonOjbect(false,`Order successfully paid`, noError))
                                     }else{
-                                        return res.json(returnResJsonObj.resJsonOjbect(true,`Order successfully paid, but it was not possible to save it to the databse`, paymentError))}}})
+                                return res.json(returnResJsonObj.resJsonOjbect(true,`Order successfully paid, but it was not possible to save it on the databse`, paymentError))    }   }   })
                             .catch(err => {
-                                console.log(err)
-                                return res.json(returnResJsonObj.resJsonOjbect(true,`Order could not be paid. Try again later`, paymentError))})})})
+                                console.log('notPossibleToPayOrder->',err)
+                                return res.json(returnResJsonObj.resJsonOjbect(true,`Order could not be paid. Try again later`, paymentError))  })  }) 
+                             })
                     .catch(err => {
                         console.log('validateOrder -> ',err)
-                        return res.json(returnResJsonObj.resJsonOjbect(true,`The attempt to pay order failed, because it was not possible to validate order status at this time.`, paymentError))})
+                        return res.json(returnResJsonObj.resJsonOjbect(true,`The attempt to pay order failed, because it was not possible to validate order status at this time.`, paymentError))   })
                 }else{
-                    return res.json(returnResJsonObj.resJsonOjbect(true,`Not possible to pay order. Please try again later.`, paymentError))}})
+                    return res.json(returnResJsonObj.resJsonOjbect(true,`Not possible to pay order. Please try again later.`, paymentError))    }   })
+            .catch(err => {
+                console.log('notPOssibleToGetDishes->',err)
+                return res.json(returnResJsonObj.resJsonOjbect(true,`Not possible to pay order. Please try again later.`, paymentError))    
+            })
         }else {
-            return res.json(returnResJsonObj.resJsonOjbect(true,`Not possible to pay order. Please try again later.`, paymentError))}})
+            return res.json(returnResJsonObj.resJsonOjbect(true,`Not possible to pay order. Please try again later.`, paymentError))    }   })
     .catch(err => {
-        console.log(err)
-        return res.json(returnResJsonObj.resJsonOjbect(true,`Not possible to pay order. Please try again later. Server message: ${err}`, paymentError))
-    })
+        console.log('notPossibleToFechUser-> ',err)
+        return res.json(returnResJsonObj.resJsonOjbect(true,`Not possible to pay order. Please try again later. Server message: ${err}`, paymentError)) })
+}
+// pay  at pick up  ------------------------------------------------------------
+// -----------------------------------------------------------------------------
+exports.payAtPickup = (req,res,next) => {
+    console.log(req.body)
+    if(!req.body.order_id||!req.body.email||!req.body.id||!req.body.cookingDate_id){
+        return res.json(returnResJsonObj.resJsonOjbect(true,`{invalidFormat: true,neededFields: {order_id: 'integer',id: 'integer',email: 'string'}}`,orderError))     }
+    Order.validateOrder(parseInt(req.body.order_id))
+    .then(([isPayableData,isPayableMeta])=>{
+        var validate = parseInt(isPayableData[1][0]['returnCode'])
+        if(validate===-2){
+            return res.json(returnResJsonObj.resJsonOjbect(true,`The attempt to pay order failed because it has been previously deleted.`, validate))   }
+        if(validate===-3){
+            return res.json(returnResJsonObj.resJsonOjbect(true,`The attempt to pay order failed because this cooking date won't take place anymore.`, validate))   }
+        if(validate===-4){
+            return res.json(returnResJsonObj.resJsonOjbect(true,`The attempt to pay order failed because it has been previously paid.`, validate))  }
+        if(validate===-5){
+            return res.json(returnResJsonObj.resJsonOjbect(true,`The attempt to pay order failed because it did not made to this cooking date list.`, validate))    }
+        if(validate===-6){
+            return res.json(returnResJsonObj.resJsonOjbect(true,`The attempt to pay order failed because this order is still wainting for dropped out orders.`, validate))  }
+        if(validate===-7){
+            return res.json(returnResJsonObj.resJsonOjbect(true,`This cooking date isn't accepting payment yet.`, validate))    }
+        if(validate===-8){
+            return res.json(returnResJsonObj.resJsonOjbect(true,`Something is wrong with your order. Please contact kungfuBBQ.`, validate))    }
+        if(validate===-9){
+            return res.json(returnResJsonObj.resJsonOjbect(true,`User does not exist.`, validate))    }    
+        Payment.payAtPickup(parseInt(req.body.order_id),parseInt(req.body.id),parseInt(req.body.cookingDate_id))
+        .then(([data,meta])=>{
+            if(data){
+                io.emit(`${process.env.ORDER}`,{orderId: parseInt(req.body.order_id)})
+                return res.json(returnResJsonObj.resJsonOjbect(false,`You have confirmed your order and it must be paid at pick up.`, noError))
+            }else{
+                return res.json(returnResJsonObj.resJsonOjbect(true,`Order could not be confirmed. Try again later`, paymentError))     }   })
+        .catch(err=> {
+            console.log('payAtPickup->',err)
+            return res.json(returnResJsonObj.resJsonOjbect(true,`Order could not be confirmed. Try again later`, paymentError))     })  })
+    .catch(err => {
+        console.log('validateOrder -> ',err)
+        return res.json(returnResJsonObj.resJsonOjbect(true,`The attempt to confirm order failed, because it was not possible to validate order status at this time.`, paymentError))   })
 }

@@ -12,8 +12,8 @@ document.getElementById('submitBtn').addEventListener('click',(e)=>{
     if(password!==confirmPassword){
         message = `${message} Password and confirmation password must match!`
     }
-    if(password.length>8||confirmPassword.length>8){
-        message = `${message} Password and confirmation password must be 8 alphnumerical characters`
+    if(password.length<3||password.length>20||confirmPassword.length<3||confirmPassword.length>20){
+        message = `${message} Password and confirmation password must be 3-20 characters`
     }
     if(message!==''){
         alert(message)

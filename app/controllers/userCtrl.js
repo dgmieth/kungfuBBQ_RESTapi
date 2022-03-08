@@ -30,6 +30,12 @@ exports.forgotPassword = (req,res,next) => {
     //check if there is a User with that email address
     User.fetchByEmail(req.body.email)
     .then(([userData,userMeta])=> {
+        console.log(userData)
+        if(userData.length===2){
+            const validate = userData[1][0].returnCode
+            if(validate===-2){
+                return res.json(returnResJsonObj.resJsonOjbect(true,`There isn't an active user for this e-mail in KungfuBBQ database.`, validate))   }
+        }
         var data = userData[0]
         if(data){
             const user = new User(req.body.email)
@@ -191,6 +197,7 @@ exports.updateInfo = (req,res,next) => {
 }
 //CHANGE PASSWORD==========================================================
 exports.changePassword = (req,res,next) => {
+    console.log('changePassword -> ',req.body)
     var validationObject = {
         hasErrors: false,
         msg: ''
@@ -209,8 +216,11 @@ exports.changePassword = (req,res,next) => {
     }
     if(!passwordValidation.validatePasswords(req.body.newPassword,req.body.confirmPassword)){
         validationObject.hasErrors = true
-        validationObject.msg = validationObject.msg + 'Password must contain numbers and letters and at least one CAPITAL letter. '
+        validationObject.msg = validationObject.msg + 'Password must at least one UPPER case and one lower case letter and one number. '
     }
+    if(!passwordValidation.checkPasswordAndPasswordConfirmationLength(req.body.newPassword,req.body.confirmPassword)){
+        validationObject.hasErrors = true
+        validationObject.msg = validationObject.msg + 'Password must be 3 to 20 characters long. '   }
     if(validationObject.hasErrors){
         return res.json(returnResJsonObj.resJsonOjbect(true,validationObject.msg,userError))   
     }
@@ -240,7 +250,7 @@ exports.changePassword = (req,res,next) => {
                         console.log(err)
                         return res.json(returnResJsonObj.resJsonOjbect(true,`The attempt to encrypt user password failed`,userError))})
                 }else{
-                    return res.json(returnResJsonObj.resJsonOjbect(true,`The attempt to validate current user failed`,userError))}})
+                    return res.json(returnResJsonObj.resJsonOjbect(true,`Wrong current password.`,userError))}})
             .catch(err => {
                 console.log(err)
                 return res.json(returnResJsonObj.resJsonOjbect(true,`The attempt to validate current user failed`,userError))})

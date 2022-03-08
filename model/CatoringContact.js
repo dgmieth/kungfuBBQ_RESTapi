@@ -13,7 +13,7 @@ module.exports = class CatoringContact{
     static newContact(dataObject){
         const newJson = JSON.stringify(dataObject)
         console.log(newJson)
-        return db.query(`CALL createNewCatoringContact('${newJson}',@returnCode);SELECT @returnCode;`)
+        return db.query(`CALL catoring_saveNewMessage('${newJson}',@returnCode);SELECT @returnCode;`)
     }
     
 }

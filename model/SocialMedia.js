@@ -9,6 +9,6 @@ module.exports = class SocialMedia{
 //=======================================================================================================
 // CLASS STATIC METHODS
     static fetchSocialMediaIds(){
-        return db.query(`CALL getSocialMediaIds();`)
+        return db.query(`CALL user_getSocialMediaIds();`)
     }
 }

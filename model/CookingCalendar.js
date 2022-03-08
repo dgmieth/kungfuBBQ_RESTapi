@@ -11,7 +11,7 @@ module.exports = class CatoringContact{
     //CLASS METHODS =========================================================================================
     //=======================================================================================================
     //fetch active cooking calendar dates for the next 60 days
-    static activeCookingDateWithinNextSixtyDays(userId){
-        return db.query(`CALL getActiveCDNext60Days(?); `,[`${userId}`])
+    static activeCookingDateWithinNextTwelveMonths(userId){
+        return db.query(`CALL foodtruck_cd_getActiveCDNext12Months(?); `,[`${userId}`])
     }
 }
