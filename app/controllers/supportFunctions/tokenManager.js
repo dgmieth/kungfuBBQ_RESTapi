@@ -5,15 +5,17 @@ const secret = process.env.APPLICATION_SECRET
 //token generator
 exports.tokenGenerator = (dataObject,userType) => {
     let expiration = ''
-    if(userType===process.env.NORMAL_USER){     
-        expiration=process.env.NORMAL_USER_EXP
-    }else if(userType===process.env.ADMINISTRATIVE_USER){
-        expiration=process.env.ADMINISTRATIVE_USER_EXP
-    }
-    return jwt.sign(dataObject, secret, {expiresIn: expiration})
+    // if(userType===process.env.NORMAL_USER){     
+    //     expiration=process.env.NORMAL_USER_EXP
+    // }else if(userType===process.env.ADMINISTRATIVE_USER){
+    //     expiration=process.env.ADMINISTRATIVE_USER_EXP
+    // }
+    // return jwt.sign(dataObject, secret, {expiresIn: expiration})
+    return jwt.sign(dataObject, secret)
 }
 exports.tokenPasswordRecovery = (dataObject) => {
-    return jwt.sign(dataObject, secret, {expiresIn: process.env.PASSWORD_RECOVERY_EXP})
+    // return jwt.sign(dataObject, secret, {expiresIn: process.env.PASSWORD_RECOVERY_EXP})
+    return jwt.sign(dataObject, secret)
 }
 //token verifications
 exports.verifyToken = (token) => {

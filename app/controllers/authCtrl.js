@@ -116,6 +116,8 @@ exports.login = (req,res,next)=>{
     User.fetchByEmail(email)
     .then(([data,meat])=> {
         console.log(data)
+        if(data.length<=2){
+            return res.json(returnResJsonObj.resJsonOjbect(true,`There isn't an active user for this e-mail in KungfuBBQ database.`,authError))    }
         var userInfo = data[0][0]
         encryption.compare(password,userInfo.password)
         .then(correct => {
@@ -174,6 +176,7 @@ exports.isAuth = (req,res,next) => {
         const token = req.get(`Authorization`).split(' ')[1]
         try {
             let decodedToken = tokenManager.verifyToken(token)
+            console.log(decodedToken)
             if(decodedToken){
                 if(decodedToken.email!==req.body.email&&decodedToken.id!==req.body.id){
                     return res.json(returnResJsonObj.resJsonOjbect(true,`Invalid token for this user. Please authenticate at /login/login`,parseInt(loginError)))      }
@@ -190,6 +193,7 @@ exports.isAuthGet = (req,res,next) => {
         const token = req.get(`Authorization`).split(' ')[1]
         try {
             let decodedToken = tokenManager.verifyToken(token)
+            console.log(decodedToken)
             if(decodedToken){
                 if(decodedToken.email!==req.query.email&&decodedToken.id!==req.query.id){
                     return res.json(returnResJsonObj.resJsonOjbect(true,`Invalid token for this user. Please authenticate at /login/login`,parseInt(loginError)))   }
