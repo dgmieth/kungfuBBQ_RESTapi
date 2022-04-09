@@ -27,7 +27,9 @@ exports.activeCookingDateWithinNextTwelveMonthsParsed = (arr) => {
                 cookingDateId: r.cookingDateId,
                 //cookingDate: r.cookingDate.toISOString().split('T').join(' ').split('.')[0],
                 cookingDate: r.cookingDate,
+                endTime: r.endTime,
                 mealsForThis: r.mealsForThis,
+                venue:r.venue===null || r.venue==='' ? 'Not informed' : r.venue,
                 addressId: r.addressId,
                 street: r.street===null ? 'Not informed' : r.street ,
                 complement: r.complement ===null ? 'Not informed' : r.complement ,
@@ -46,7 +48,8 @@ exports.activeCookingDateWithinNextTwelveMonthsParsed = (arr) => {
                                 'Close to orders',
                 menuID: r.menuID,
                 dishes: dishes,
-                cookingDateAmPm:r.cookingDateAmPm
+                cookingDateAmPm:r.cookingDateAmPm,
+                cookingDateEndAmPm:r.cookingDateEndAmPm
             })
         }
     })
@@ -62,7 +65,6 @@ exports.activeCookingDateWithinNextTwelveMonthsParsed = (arr) => {
                 }
                 return false
             })
-            //console.log(filteredArray)
             filteredArray.forEach(ff => {
                 if(ff.dishId!==null){
                     innerArrayDish.push({
@@ -101,6 +103,5 @@ exports.activeCookingDateWithinNextTwelveMonthsParsed = (arr) => {
             })
         }
     })
-    //onsole.log(oArray[0].tipAmount)
     return [cdArray,oArray]
 }

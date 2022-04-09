@@ -28,7 +28,7 @@ exports.activeCookingDateWithinNextTwelveMonths = (req,res,next) => {
     `)
     CookingCalendar.activeCookingDateWithinNextTwelveMonths(parseInt(req.query.id))
     .then(([data,meta])=>{
-        console.log(data)
+        // console.log(data)
         if(data[0].length===0){
             return res.json(returnResJsonObj.resJsonOjbect(true,`There are no future events currently scheduled.`, dataError))
         }

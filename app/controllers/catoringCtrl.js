@@ -16,7 +16,7 @@ const cateringError = parseInt(process.env.CATERING_ERROR)
 exports.saveContact = (req,res,next)=>{
     console.log(req.headers)
     req.body.orderDescription = req.body.orderDescription.replace(/'/ig,'`').replace(/\t|\n|\n|\r/gm,'')
-    if(!validator.validateEmailAddress(req.body.email)){
+    if(!validator.validateEmailAddress(req.body.email.toLowerCase().trim())){
         return res.json(returnResJsonObj.resJsonOjbect(true,`You must inform a valid e-mail address.`,cateringError))      }
     CatoringContact.newContact(req.body)
     .then(([data,meta])=> {
@@ -26,6 +26,6 @@ exports.saveContact = (req,res,next)=>{
         }else{
             return res.json(returnResJsonObj.resJsonOjbect(true,`It was not possible to send your message right now. Please try again later.`,cateringError))   }   })
     .catch(err => {
-        console.log(err)
+        console.log('newContact error -> ', err)
         return res.json(returnResJsonObj.resJsonOjbect(true,`It was not possible to send your message right now. Please try again later.`,cateringError))   })
 }

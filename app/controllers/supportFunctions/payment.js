@@ -7,11 +7,6 @@ var SDKConstants = require('authorizenet').Constants;
 const APIKEY = process.env.NODE_ENV==='prod' ?  process.env.API_LOGIN_KEY_PROD : process.env.API_LOGIN_KEY_DEV
 const TRANSACTIONKEY = process.env.NODE_ENV==='prod' ? process.env.TRASACTION_KEY_PROD : process.env.TRASACTION_KEY_DEV
 const itemCounter = 30
-console.log(process.env.NODE_ENV)
-console.log(APIKEY)
-console.log(TRANSACTIONKEY)
-// const APIKEY = process.env.API_LOGIN_KEY_DEV
-// const TRANSACTIONKEY = process.env.TRASACTION_KEY_DEV
 
 exports.chargeCreditCard = (dataObject, callback) => {
     console.log('dataObject -> ',dataObject)
@@ -47,7 +42,6 @@ exports.chargeCreditCard = (dataObject, callback) => {
         itemsList.push(lineItem)
     }
     dataObject.dish.forEach(dish => {
-        // console.log(dish)
         var lineItem = new ApiContracts.LineItemType()
         lineItem.setItemId(`dishID_${dish.dishId}`)
         lineItem.setName(dish.dishName.substring(0,28))
@@ -91,21 +85,19 @@ exports.chargeCreditCard = (dataObject, callback) => {
         ctrl.setEnvironment(SDKConstants.endpoint.production);
     }
     ctrl.execute(function(){
-        console.log(456)
-
         var apiResponse = ctrl.getResponse();
 
         var response = new ApiContracts.CreateTransactionResponse(apiResponse);
 
         //pretty print response
-        console.log(JSON.stringify(response, null, 2));
+        // console.log(JSON.stringify(response, null, 2));
         var returnObj = {}
-        console.log('response is -> ',response,`====== ended`)
-        console.log(`=======================================`)
-        console.log(`===========PAYMENT RESPONSE============`)
-        console.log(response)
-        console.log(`===========PAYMENT RESPONSE============`)
-        console.log(`=======================================`)
+        // console.log('response is -> ',response,`====== ended`)
+        // console.log(`=======================================`)
+        // console.log(`===========PAYMENT RESPONSE============`)
+        // console.log(response)
+        // console.log(`===========PAYMENT RESPONSE============`)
+        // console.log(`=======================================`)
         if(response.messages.resultCode===`Ok`){
             returnObj.refId = response.refId
             returnObj.responseCode = response.transactionResponse.responseCode
@@ -197,7 +189,7 @@ exports.chargeCreditCard = (dataObject, callback) => {
         //     returnObj.errorDescription = (response.messages.message[0].text).replace(/'/ig,'')
         //     returnObj.errorCode = response.messages.message[0].code
         // }
-        console.log(returnObj)
+        // console.log(returnObj)
         callback(returnObj);
     });
     }

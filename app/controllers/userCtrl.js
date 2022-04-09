@@ -28,7 +28,8 @@ exports.forgotPassword = (req,res,next) => {
         return res.json(returnResJsonObj.resJsonOjbect(true,`{invalidFormat: true,neededFields: {email: 'string'}`,userError))
     }
     //check if there is a User with that email address
-    User.fetchByEmail(req.body.email)
+    const email = req.body.email.toLowerCase().trim()
+    User.fetchByEmail(email)
     .then(([userData,userMeta])=> {
         console.log(userData)
         if(userData.length===2){
@@ -38,7 +39,7 @@ exports.forgotPassword = (req,res,next) => {
         }
         var data = userData[0]
         if(data){
-            const user = new User(req.body.email)
+            const user = new User(email)
             user.setID = data[0].id
             user.setName = data[0].name
             user.setMemberSince = data[0].createdIn
@@ -108,7 +109,7 @@ exports.resetPasswordPost = (req,res,next) => {
     if(validationObject.hasErrors){
         return res.json(returnResJsonObj.resJsonOjbect(true,validationObject.msg,userError))
     }else{
-        User.fetchByEmail(req.body.email)
+        User.fetchByEmail(req.body.email.toLowerCase().trim())
         .then(([userData,userMeta])=>{
             var data0 = userData[0]
             if(data0){
@@ -143,7 +144,7 @@ exports.updateInfo = (req,res,next) => {
         return res.json(returnResJsonObj.resJsonOjbect(true,`{invalidFormat: true,neededFields: {id: 'string',email: 'string',name: 'string for null send none',phoneNumber: 'int for null send 999',facebookName: 'string for null send none',instagramName: 'string for null send none',}}`,userError))
     }
     //get User information for that email and check if id matches
-    User.fetchByEmail(req.body.email)
+    User.fetchByEmail(req.body.email.toLowerCase().trim())
     .then(([userData,userMeta])=> {
         var data = userData[0]
         if(data[0].email){
@@ -224,7 +225,7 @@ exports.changePassword = (req,res,next) => {
     if(validationObject.hasErrors){
         return res.json(returnResJsonObj.resJsonOjbect(true,validationObject.msg,userError))   
     }
-    User.fetchByEmail(req.body.email)
+    User.fetchByEmail(req.body.email.toLowerCase().trim())
     .then(([userData,userMeta])=> {
         var data = userData[0]
         if(parseInt(req.body.id) === data[0].id){
@@ -267,7 +268,7 @@ exports.renewToken = (req,res,next) => {
     if(!req.query.email){
         return res.json(returnResJsonObj.resJsonOjbect(true,`{invalidFormat: true,neededFields: {email: 'string'}}`,userError))}
     //res.json({success: 'renewToken'})
-    User.fetchByEmail(req.query.email)
+    User.fetchByEmail(req.body.email.toLowerCase().trim())
     .then(([userData,userMeta])=>{
         var data = userData[0]
         if(data){

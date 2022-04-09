@@ -6,9 +6,10 @@ const nodemailer = require('nodemailer');
 const ejs = require('ejs')
 
 const sendEmail = async (email, subject, payload, template)=> {
-    console.log(email)
-    console.log(subject)
-    console.log(payload)
+    console.log('sendEmail called ',email)
+    // console.log(email)
+    // console.log(subject)
+    // console.log(payload)
     try {
         const transporter = nodemailer.createTransport({
             service:"SendinBlue", // no need to set host or port etc.
@@ -30,7 +31,7 @@ const sendEmail = async (email, subject, payload, template)=> {
             };
         transporter.sendMail(options(), (error, info) => {
         if (error) {
-            console.log(error)
+            console.log('sendEmail error ->',error)
             return error;
         } else {
             return res.status(200).json({
@@ -39,7 +40,7 @@ const sendEmail = async (email, subject, payload, template)=> {
         }
         });
     } catch (error) {
-        console.log(error)
+        console.log('sendEmail error ->',error)
         return error;
     }
 }

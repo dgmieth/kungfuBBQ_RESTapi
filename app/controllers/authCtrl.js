@@ -34,13 +34,12 @@ exports.register = (req,res,next)=> {
     ===================================
     `)
     if(!req.body.email||!req.body.password||!req.body.confirmPassword/*||!req.body.code*/||!req.body.mobileOS||!req.body.name||!req.body.phoneNumber||!req.body.facebookName||!req.body.instagramName){
-        console.log('returnCalled')
         //code: 'string', removed
         return res.json(returnResJsonObj.resJsonOjbect(true,`{invalidFormat: true,neededFields: {email: 'string',password: 'string',confirmPassword: 'string',mobileOS:'string',phoneNumber:'string',name:'string',}}`,authError))  }
     const code = req.body.code
-    const email = req.body.email.toLowerCase()
-    const password = req.body.password 
-    const confirmPassword = req.body.confirmPassword
+    const email = req.body.email.toLowerCase().trim()
+    const password = req.body.password.trim()
+    const confirmPassword = req.body.confirmPassword.trim()
     const os = req.body.mobileOS
     validationObject = { msg: '' }
     //validating email
@@ -111,11 +110,11 @@ exports.login = (req,res,next)=>{
     if(!req.body.email||!req.body.password||!req.body.mobileOS){
         return res.json(returnResJsonObj.resJsonOjbect(true,`{invalidFormat: true,neededFields: {email: 'string',password: 'string',mobileOS:'string'}}`,authError))
     }
-    const email = req.body.email
-    const password = req.body.password 
+    const email = req.body.email.toLowerCase().trim()
+    const password = req.body.password.trim()
     User.fetchByEmail(email)
     .then(([data,meat])=> {
-        console.log(data)
+        // console.log(data)
         if(data.length<=2){
             return res.json(returnResJsonObj.resJsonOjbect(true,`There isn't an active user for this e-mail in KungfuBBQ database.`,authError))    }
         var userInfo = data[0][0]
@@ -125,6 +124,7 @@ exports.login = (req,res,next)=>{
             user.setID = userInfo.id
             user.setMobileOS = req.body.mobileOS
             if(correct){
+                console.log('Successful login ',email)
                 user.logLogIn()
                 const token = returnLoggedInUserInfo(data[0],normalUser).token
                 io.emit(`${process.env.CUSTOMER}`,{userId: user.id, email: user.email})
