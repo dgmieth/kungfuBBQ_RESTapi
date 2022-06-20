@@ -77,6 +77,9 @@ module.exports = class User{
     static fetchByEmail(email){
         return db.query(`CALL user_getUserInformationByEmail(?, @returnCode);SELECT @returnCode as returnCode;`, [`${email}`])
     }
+    static fetchByID(userId){
+        return db.query(`CALL user_fetchById(?);`, [`${userId}`])
+    }
     // static countuserByEmail(email){
     //     return db.query(`SELECT count(email) as checkuser FROM user WHERE excluded = 0 AND email = ?;`, [`${email}`])
     // }

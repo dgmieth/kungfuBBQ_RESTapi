@@ -6,7 +6,7 @@ const nodemailer = require('nodemailer');
 const ejs = require('ejs')
 
 const sendEmail = async (email, subject, payload, template)=> {
-    console.log('sendEmail called ',email)
+    console.log('sendEmail called ')
     // console.log(email)
     // console.log(subject)
     // console.log(payload)
@@ -18,7 +18,7 @@ const sendEmail = async (email, subject, payload, template)=> {
                 pass: process.env.MAIL_PASSWORD
             }
         });
-        const source = fs.readFileSync(path.join(__dirname, '../../../views/passwordRecoveryEmail.ejs'),"utf8")
+        const source = fs.readFileSync(path.join(__dirname, `../../../views/${template}.ejs`),"utf8")
         console.log(source)
         const compiledTemplate = ejs.compile(source)
         const options = () => {

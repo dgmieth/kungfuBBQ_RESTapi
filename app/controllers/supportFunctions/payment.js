@@ -28,8 +28,8 @@ exports.chargeCreditCard = (dataObject, callback) => {
     billTo.setEmail(dataObject.email)
 
     var order = new ApiContracts.OrderType()
-    order.setInvoiceNumber(`Order_${dataObject.orderId}_${new Date().getUTCSeconds()}`)
-    order.setDescription("FoodTruck order")
+    order.setInvoiceNumber(`${dataObject.origin}_${dataObject.orderId}_${new Date().getUTCSeconds()}`)
+    order.setDescription(dataObject.description)
 
     var itemsList = []
     var counter = 0

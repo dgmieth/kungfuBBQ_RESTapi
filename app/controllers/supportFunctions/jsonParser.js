@@ -40,11 +40,14 @@ exports.activeCookingDateWithinNextTwelveMonthsParsed = (arr) => {
                 lat: r.lat  ===null ? -9999999999 : parseFloat(r.lat),
                 lng: r.lng  ===null ? -9999999999 : parseFloat(r.lng),
                 cookingStatusId: r.cookingStatusId,
+                maybeGo: r.maybeGo,
+                eventOnly: r.eventOnly,
                 cookingStatus: r.cookingStatus===null ? 'Not informed' : 
                                 [1,2,3,4].includes(r.cookingStatusId) ? r.cookingStatus : 
                                 arr[1].some(r1 => r1.cookingDateId===r.cookingDateId && [5,8,9,10,11].includes(r1.orderStatusId)) ? 'Order paid' : 
                                 arr[1].some(r1 => r1.cookingDateId===r.cookingDateId && r1.orderStatusId === 3) ? 'Accepting payments' :
                                 arr[1].some(r1 => r1.cookingDateId===r.cookingDateId && r1.orderStatusId === 4) ? 'Order on wait list' :
+                                [20].includes(r.cookingStatusId) ? 'First come first server ONLY' :
                                 'Close to orders',
                 menuID: r.menuID,
                 dishes: dishes,

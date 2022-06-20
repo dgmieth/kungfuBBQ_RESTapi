@@ -173,7 +173,8 @@ exports.payOrder = (req,res,next) => {
                 orderId: `${req.body.order_id}`,
                 email: req.body.email,
                 tip: tip = tip === '' || tip === undefined || tip === null ? 0 : parseFloat(tip),
-                userName: user[0].name === null || user[0].name === '' ? '' : user[0].name  }
+                userName: user[0].name === null || user[0].name === '' ? '' : user[0].name,
+                phoneNumber: user[0].phoneNumber === null || user[0].phoneNumber === '' ? '' : user[0].phoneNumber}
             Order.getDishes(parseInt(req.body.order_id))
             .then(([order,orderM])=>{
                 if(order){
@@ -181,6 +182,8 @@ exports.payOrder = (req,res,next) => {
                     var amount = tip
                     order[0].forEach(price =>{  amount = amount + parseFloat(price.dishPrice)*price.dishQtty     })
                     dataObject.totalAmount = parseFloat(parseFloat(amount).toFixed(2))
+                    dataObject.origin = `Foodtruck`
+                    dataObject.description = "Foodtruck order"
                     console.log(dataObject.totalAmount)
                     Order.validateOrder(parseInt(req.body.order_id))
                     .then(([isPayableData,isPayableMeta])=>{
@@ -208,6 +211,7 @@ exports.payOrder = (req,res,next) => {
                             cb.cookingDate_id = req.body.cookingDate_id
                             cb.amount = amount
                             cb.tip = tip === '' || tip === undefined || tip === null ? 0 : parseFloat(tip)
+                            cb.origin = 1
                             Payment.payOrder(JSON.stringify(cb))
                             .then(([payment,paymentM])=>{
                                 console.log(payment)
@@ -241,7 +245,7 @@ exports.payOrder = (req,res,next) => {
 // pay  at pick up  ------------------------------------------------------------
 // -----------------------------------------------------------------------------
 exports.payAtPickup = (req,res,next) => {
-    console.log(`payAtPickup ->`,payAtPickupreq.body)
+    console.log(`payAtPickup ->`,req.body)
     if(!req.body.order_id||!req.body.email||!req.body.id||!req.body.cookingDate_id){
         return res.json(returnResJsonObj.resJsonOjbect(true,`{invalidFormat: true,neededFields: {order_id: 'integer',id: 'integer',email: 'string'}}`,orderError))     }
     Order.validateOrder(parseInt(req.body.order_id))

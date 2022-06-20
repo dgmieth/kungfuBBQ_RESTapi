@@ -64,5 +64,4 @@ io.attach(httpServer,{
 //http server creation
 httpServer.listen(httpPort)
 
-
 module.exports = app
