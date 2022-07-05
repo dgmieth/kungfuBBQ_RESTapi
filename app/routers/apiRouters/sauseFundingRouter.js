@@ -13,5 +13,6 @@ sauseFundingRouter.get('/getCampaignInformation', (authenticated ? authControlle
 //sauseFundingRouter.get('/getPreOrders', (authenticated ? authController.isAuth : goToNext), sauseFundingCtrl.getPreOrders)
 //sauseFundingRouter.get('/amountRaised', (authenticated ? authController.isAuth : goToNext), sauseFundingCtrl.amountRaised)
 sauseFundingRouter.post(`/payCampaignOrder`, authenticated ? authController.isAuth : goToNext, sauseFundingCtrl.payCampaignOrder)
+sauseFundingRouter.post(`/informShirtSize`, authenticated ? authController.isAuth : goToNext, sauseFundingCtrl.informShirtSize)
 //exporting router
 module.exports = sauseFundingRouter

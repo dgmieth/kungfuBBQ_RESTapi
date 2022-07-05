@@ -11,7 +11,7 @@ module.exports = class Funding{
         this.dishes = []
         this.itemPrice = 0.00
         this.tip = 0
-        this.origin = `Sause_funding`
+        this.origin = `SauF_ordId`
         this.originId = 4
     }
     set setOrderId(orderId){
@@ -29,7 +29,7 @@ module.exports = class Funding{
         }else{ this.tip = 0 }
     }
     get getTip(){
-        return this.tip
+        return parseFloat(this.tip)
     }
     get getOrderItemPrice(){
         return this.itemPrice
@@ -57,7 +57,7 @@ module.exports = class Funding{
                             SELECT @itemName as itemName;`,[`${this.userId}`,`${this.qtty}`])
     }
     payOrder(jsonOb){
-        return db.query(`CALL funding_sause_payOrder(?,?);`, [`${jsonOb}`,`${this.orderId}`])
+        return db.query(`CALL funding_sause_payOrder(?,?,@informedShirtSize);SELECT @informedShirtSize as informedShirtSize;`, [`${jsonOb}`,`${this.orderId}`])
     }
 //=======================================================================================================
 //CLASS METHODS =========================================================================================
@@ -66,13 +66,16 @@ module.exports = class Funding{
     static getSausePrice(){
         return db.query(`SELECT funding_sause_getPrice();`)
     }
-    static getAmountRaised(){
-        return db.query(`CALL funding_sause_getAmountRaised();`)
+    static getInformation(){
+        return db.query(`CALL funding_sause_getInformation();`)
     }
     static getPreOrders(){
         return db.query(`CALL funding_sause_getPreOrders();`)
     }
     static getCampaignStatus(){
         return db.query(`CALL funding_sause_campaignStatus(FALSE,0);`)
+    }
+    static informShirtSize(userId,size){
+        return db.query(`CALL sause_funding_setTShirtSize(?,?);`,[`${userId}`,`${size}`])
     }
 }

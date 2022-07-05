@@ -127,6 +127,7 @@ exports.chargeCreditCard = (dataObject, callback) => {
                 returnObj.messageDescription = response.messages.message[0].text
             }
         }else{
+            console.log(response.messages.message)
             if(response.transactionResponse.hasOwnProperty(`errors`)){
                 returnObj.error = 1
                 returnObj.errorCode = response.transactionResponse.errors.error[0].errorCode

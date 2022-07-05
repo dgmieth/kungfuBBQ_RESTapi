@@ -47,7 +47,7 @@ exports.activeCookingDateWithinNextTwelveMonthsParsed = (arr) => {
                                 arr[1].some(r1 => r1.cookingDateId===r.cookingDateId && [5,8,9,10,11].includes(r1.orderStatusId)) ? 'Order paid' : 
                                 arr[1].some(r1 => r1.cookingDateId===r.cookingDateId && r1.orderStatusId === 3) ? 'Accepting payments' :
                                 arr[1].some(r1 => r1.cookingDateId===r.cookingDateId && r1.orderStatusId === 4) ? 'Order on wait list' :
-                                [20].includes(r.cookingStatusId) ? 'First come first server ONLY' :
+                                [20].includes(r.cookingStatusId) ? 'First come first serve ONLY' :
                                 'Close to orders',
                 menuID: r.menuID,
                 dishes: dishes,
