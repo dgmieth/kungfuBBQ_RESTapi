@@ -90,7 +90,7 @@ exports.payCampaignOrder = (req,res,next)=>{
         .then(([orderInfo,orderMetaInfo])=>{
             validate = orderInfo[1][0].returnCode
             if(validate===-2){
-                return res.json(returnResJsonObj.resJsonOjbect(true,`The attempt to pay your pre-order failed with server message: Not possible to create preorder. User does not exist in our database. Please contact KungfuBBQ.`, sauseError))}
+                return res.json(returnResJsonObj.resJsonOjbect(true,{msg:`The attempt to pay your pre-order failed with server message: Not possible to create preorder. User does not exist in our database. Please contact KungfuBBQ.`}, sauseError))}
             /*creating funding object*/
             order.dishes.push({
                 dishId: 1,
@@ -140,7 +140,7 @@ exports.payCampaignOrder = (req,res,next)=>{
                     })
                 })
                 if(cb.error === 1){
-                    return res.json(returnResJsonObj.resJsonOjbect(true,`The attempt to pay your pre-order failed with server message: ${cb.errorDescription}`,noError))
+                    return res.json(returnResJsonObj.resJsonOjbect(true,{msg:`The attempt to pay your pre-order failed with server message: ${cb.errorDescription}`},noError))
                 }
                 /*saving payment to database*/
                 order.payOrder(JSON.stringify(cb))
@@ -156,19 +156,19 @@ exports.payCampaignOrder = (req,res,next)=>{
                         },`sausePreOrderReceipt`)
                     console.log(process.env.SAUSEFUNDING)
                     io.emit(`${process.env.SAUSEFUNDING}`,{user: order.getUserId, orderID: order.getOrderId,email:user.email})      
-                    return res.json(returnResJsonObj.resJsonOjbect(false,{msg:`Order id # ${order.getOrderId} was paid. You'll receive an email with a receipt of this transaction in a couple of minutes.`,hasInformedShirtSize},noError))
+                    return res.json(returnResJsonObj.resJsonOjbect(false,{msg:`Order id #${order.getOrderId} was paid. You'll receive an email with a receipt of this transaction in a couple of minutes.`,hasInformedShirtSize},noError))
                 })
                 .catch(err => {
                     console.log(`funding sause payOrder() => error ----> ${err}`)
-                    return res.json(returnResJsonObj.resJsonOjbect(true,`The attempt to pay your pre-order failed with server message: It was not possible to pay your order. Please try again later.`,sauseError))
+                    return res.json(returnResJsonObj.resJsonOjbect(true,{msg:`The attempt to pay your pre-order failed with server message: It was not possible to pay your order. Please try again later.`},sauseError))
                 })  })  })
         .catch(err => {
             console.log(`funding sause createOrder() => error ----> ${err}`)
-            return res.json(returnResJsonObj.resJsonOjbect(true,`The attempt to pay your pre-order failed with server message: It was not possible to create your order. Please try again later.`,sauseError))
+            return res.json(returnResJsonObj.resJsonOjbect(true,{msg:`The attempt to pay your pre-order failed with server message: It was not possible to create your order. Please try again later.`},sauseError))
         })  })
     .catch(err => {
         console.log('funding sause - user fetchByID() => error -----> ',err)
-        return res.json(returnResJsonObj.resJsonOjbect(true,`The attempt to pay your pre-order failed with server message: It was not possible to validate your user. Please try again later.`,sauseError))
+        return res.json(returnResJsonObj.resJsonOjbect(true,{msg:`The attempt to pay your pre-order failed with server message: It was not possible to validate your user. Please try again later.`},sauseError))
     })
 }
 //=====================================================================

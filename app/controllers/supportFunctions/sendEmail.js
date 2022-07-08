@@ -19,7 +19,7 @@ const sendEmail = async (email, subject, payload, template)=> {
             }
         });
         const source = fs.readFileSync(path.join(__dirname, `../../../views/${template}.ejs`),"utf8")
-        console.log(source)
+        // console.log(source)
         const compiledTemplate = ejs.compile(source)
         const options = () => {
             return {
